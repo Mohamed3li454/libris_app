@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:libris_app/core/utils/styles.dart';
 
 class FeaturedBooksSection extends StatelessWidget {
   const FeaturedBooksSection({super.key});
@@ -11,7 +11,7 @@ class FeaturedBooksSection extends StatelessWidget {
       children: [
         Text(
           "Featured for you",
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 24),
+          style: Styles.intelStyle.copyWith(fontSize: 24),
         ),
         const SizedBox(height: 16),
         const SizedBox(height: 290, child: FeaturedListViewBuilder()),

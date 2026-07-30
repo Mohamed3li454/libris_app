@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/utils/styles.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({super.key});
@@ -14,9 +14,9 @@ class CustomAppBar extends StatelessWidget {
         children: [
           Text(
             "Libris",
-            style: GoogleFonts.inter(
+            style: Styles.intelStyle.copyWith(
               color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               fontSize: 32,
             ),
           ),
