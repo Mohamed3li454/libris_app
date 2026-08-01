@@ -9,12 +9,21 @@ class FeaturedBooksSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Featured for you",
-          style: Styles.intelStyle.copyWith(fontSize: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Featured for you",
+                style: Styles.intelStyle.copyWith(fontSize: 22),
+              ),
+              TextButton(onPressed: () {}, child: const Text("See All")),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        const SizedBox(height: 290, child: FeaturedListViewBuilder()),
+        const SizedBox(height: 12),
+        const SizedBox(height: 300, child: FeaturedListViewBuilder()),
       ],
     );
   }
@@ -34,7 +43,7 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.55);
+    _pageController = PageController(viewportFraction: 0.6);
   }
 
   @override
@@ -49,22 +58,30 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
       padEnds: false,
       controller: _pageController,
       itemCount: 10,
+      physics: const BouncingScrollPhysics(),
       itemBuilder: (context, index) {
         return AnimatedBuilder(
           animation: _pageController,
           builder: (context, child) {
-            double page = 0.0;
+            double value = 0.0;
             if (_pageController.position.haveDimensions) {
-              page = _pageController.page ?? 0.0;
+              value = (_pageController.page! - index);
             } else {
-              page = index.toDouble();
+              value = (index == 0) ? 0 : 1;
             }
 
-            double scale = (1 - ((page - index).abs() * 0.15)).clamp(0.8, 1.0);
+            double scale = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
+            double opacity = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
 
-            return Transform.scale(scale: scale, child: child);
+            return Transform.scale(
+              scale: scale,
+              child: Opacity(opacity: opacity, child: child),
+            );
           },
-          child: const FeatureBookListView(),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            child: FeatureBookListView(),
+          ),
         );
       },
     );
@@ -76,13 +93,22 @@ class FeatureBookListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        image: const DecorationImage(
-          image: AssetImage("assets/book.jpg"),
-          fit: BoxFit.fill,
+    return AspectRatio(
+      aspectRatio: 2.6 / 4,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 5,
+            ),
+          ],
+          image: const DecorationImage(
+            image: AssetImage("assets/book.jpg"),
+            fit: BoxFit.cover,
+          ),
         ),
-        borderRadius: BorderRadius.circular(16),
       ),
     );
   }
