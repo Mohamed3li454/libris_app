@@ -5,8 +5,8 @@ import 'package:libris_app/features/home/presentation/view/widgets/home_view_bod
 import 'package:libris_app/features/library/presentation/view/library_view.dart';
 import 'package:libris_app/features/profile/presentation/view/profile_view.dart';
 
-/// Main navigation screen featuring a BottomNavigationBar and switching
-/// between 4 separate views using IndexedStack to preserve view states.
+/// Main navigation screen featuring a BottomNavigationBar and sliding animations
+/// when switching between 4 separate views using PageView and PageController.
 class MainNavigationView extends StatefulWidget {
   final int initialIndex;
 
@@ -21,6 +21,7 @@ class MainNavigationView extends StatefulWidget {
 
 class _MainNavigationViewState extends State<MainNavigationView> {
   late int _currentIndex;
+  late PageController _pageController;
 
   final List<Widget> _views = const [
     HomeViewBody(),
@@ -33,6 +34,13 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _onTabSelected(int index) {
@@ -40,13 +48,23 @@ class _MainNavigationViewState extends State<MainNavigationView> {
     setState(() {
       _currentIndex = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         children: _views,
       ),
       bottomNavigationBar: CustomBottomNavigationBar(

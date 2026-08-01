@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:libris_app/constants/app_colors.dart';
 
 /// Data class representing each navigation tab item.
 class NavItemData {
@@ -6,11 +7,7 @@ class NavItemData {
   final IconData? activeIcon;
   final String label;
 
-  const NavItemData({
-    required this.icon,
-    this.activeIcon,
-    required this.label,
-  });
+  const NavItemData({required this.icon, this.activeIcon, required this.label});
 }
 
 /// A custom, animated BottomNavigationBar widget designed with warm beige tones,
@@ -28,10 +25,10 @@ class CustomBottomNavigationBar extends StatefulWidget {
     super.key,
     this.selectedIndex = 0, // Default active index set to Home (index 0)
     this.onItemTapped,
-    this.backgroundColor = const Color(0xFFF3EFE6),
+    this.backgroundColor = AppColors.background,
     this.activePillColor = const Color(0xFFE8DFC8),
-    this.activeColor = const Color(0xFF5B3E19),
-    this.inactiveColor = const Color(0xFF4A443A),
+    this.activeColor = AppColors.primary,
+    this.inactiveColor = AppColors.secondary,
     this.topBorderColor = const Color(0xFFE5DDD0),
   });
 
@@ -40,8 +37,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
       _CustomBottomNavigationBarState();
 }
 
-class _CustomBottomNavigationBarState
-    extends State<CustomBottomNavigationBar> {
+class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   late int _currentIndex;
 
   static const List<NavItemData> _navItems = [
@@ -95,10 +91,7 @@ class _CustomBottomNavigationBarState
       decoration: BoxDecoration(
         color: widget.backgroundColor,
         border: Border(
-          top: BorderSide(
-            color: widget.topBorderColor,
-            width: 1.0,
-          ),
+          top: BorderSide(color: widget.topBorderColor, width: 1.0),
         ),
       ),
       child: SafeArea(
@@ -147,9 +140,7 @@ class _CustomBottomNavigationBarState
                               isActive
                                   ? (item.activeIcon ?? item.icon)
                                   : item.icon,
-                              key: ValueKey<String>(
-                                '${item.label}_$isActive',
-                              ),
+                              key: ValueKey<String>('${item.label}_$isActive'),
                               color: isActive
                                   ? widget.activeColor
                                   : widget.inactiveColor,
