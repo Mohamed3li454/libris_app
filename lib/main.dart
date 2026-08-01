@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/features/home/presentation/view/home_view.dart';
+import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
 import 'constants/app_colors.dart';
 
 void main() {
@@ -24,7 +24,8 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: AppColors.background,
       ),
-      home: const HomeView(),
+      home: const MainNavigationView(),
     );
   }
 }
+

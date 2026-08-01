@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:libris_app/main.dart';
+import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets(
+      'MainNavigationView defaults to Home and switches views on tab tap',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MainNavigationView(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify Home tab is selected by default (index 0)
+    expect(find.text('The Great Gatsby'), findsWidgets);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Tap Explore tab
+    await tester.tap(find.text('Explore'));
+    await tester.pumpAndSettle();
+    expect(find.text('Explore Content Coming Soon'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Tap Library tab
+    await tester.tap(find.text('Library'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your Library is Empty'), findsOneWidget);
+
+    // Tap Profile tab
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('Profile Settings'), findsOneWidget);
   });
 }
