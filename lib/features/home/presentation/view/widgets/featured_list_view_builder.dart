@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/features/home/presentation/view/widgets/feature_book_list_view.dart';
+import 'package:libris_app/features/home/presentation/view/widgets/feature_book_item.dart';
 
 class FeaturedListViewBuilder extends StatefulWidget {
   const FeaturedListViewBuilder({super.key});
@@ -52,7 +52,7 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
           },
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-            child: FeatureBookListView(),
+            child: FeatureBookItem(),
           ),
         );
       },

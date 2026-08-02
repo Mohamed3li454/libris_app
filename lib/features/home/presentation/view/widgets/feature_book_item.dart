@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class FeatureBookListView extends StatelessWidget {
-  const FeatureBookListView({super.key});
+class FeatureBookItem extends StatelessWidget {
+  const FeatureBookItem({super.key});
 
   @override
   Widget build(BuildContext context) {

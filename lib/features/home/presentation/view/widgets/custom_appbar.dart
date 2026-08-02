@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/constants/app_colors.dart';
-import 'package:libris_app/core/utils/styles.dart';
 
 class CustomAppBar extends StatelessWidget {
-  const CustomAppBar({super.key});
+  final Widget? leading;
+  final Widget? title;
+  final Widget? trailing;
+
+  const CustomAppBar({super.key, this.leading, this.title, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -12,18 +14,13 @@ class CustomAppBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "Libris",
-            style: Styles.intelStyle.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w900,
-              fontSize: 32,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search, size: 32, color: AppColors.primary),
-          ),
+          leading ?? const SizedBox.shrink(),
+          if (title != null) ...[
+            Expanded(child: Center(child: title)),
+          ] else ...[
+            const Spacer(),
+          ],
+          trailing ?? const SizedBox.shrink(),
         ],
       ),
     );
