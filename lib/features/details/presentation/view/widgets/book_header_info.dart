@@ -21,7 +21,7 @@ class BookHeaderInfo extends StatelessWidget {
       children: [
         // Category / Genre Tag
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
@@ -40,7 +40,7 @@ class BookHeaderInfo extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 8),
         // Book Title
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -55,7 +55,7 @@ class BookHeaderInfo extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 2),
         // Author Name
         Text(
           author,

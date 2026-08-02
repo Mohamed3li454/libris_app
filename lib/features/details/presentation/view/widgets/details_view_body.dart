@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/utils/styles.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_header_info.dart';
+import 'package:libris_app/features/details/presentation/view/widgets/book_description_section.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_stats_card.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/custom_appbar.dart';
 
@@ -41,12 +42,13 @@ class DetailsViewBody extends StatelessWidget {
                 onPressed: () {},
               ),
             ),
-            const SizedBox(height: 12),
-            const BookDetailsItem(),
-            const SizedBox(height: 24),
-            const BookHeaderInfo(),
             const SizedBox(height: 8),
+            const BookDetailsItem(),
+            const SizedBox(height: 12),
+            const BookHeaderInfo(),
+            const SizedBox(height: 4),
             const BookStatsCard(),
+            const BookDescriptionSection(),
           ],
         ),
       ),
