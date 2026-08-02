@@ -10,23 +10,31 @@ class HomeViewBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SafeArea(
-      child: Column(
-        children: [
-          CustomAppBar(),
-          SizedBox(height: 8),
-
-          Padding(
-            padding: EdgeInsets.only(left: 20),
-            child: FeaturedBooksSection(),
-          ),
-          SizedBox(height: 24),
-          Padding(padding: EdgeInsets.only(left: 20), child: FilterChipsList()),
-          SizedBox(height: 12),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 20),
-              child: FilterBookListView(),
+      child: CustomScrollView(
+        physics: BouncingScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomAppBar(),
+                SizedBox(height: 8),
+                Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: FeaturedBooksSection(),
+                ),
+                SizedBox(height: 24),
+                Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: FilterChipsList(),
+                ),
+                SizedBox(height: 12),
+              ],
             ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.only(left: 20),
+            sliver: FilterBookListView(),
           ),
         ],
       ),
@@ -39,16 +47,13 @@ class FilterBookListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      itemCount: 10,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((context, index) {
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 9),
           child: FilterBookItem(),
         );
-      },
+      }, childCount: 10),
     );
   }
 }
