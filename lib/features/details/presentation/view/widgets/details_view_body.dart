@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/utils/styles.dart';
+import 'package:libris_app/features/details/presentation/view/widgets/book_details_item.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_header_info.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_description_section.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_stats_card.dart';
@@ -50,41 +51,6 @@ class DetailsViewBody extends StatelessWidget {
             const BookStatsCard(),
             const BookDescriptionSection(),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class BookDetailsItem extends StatelessWidget {
-  const BookDetailsItem({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width * 0.45;
-
-    return SizedBox(
-      width: width,
-      child: AspectRatio(
-        aspectRatio: 2 / 3,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: const Image(
-              image: AssetImage("assets/book.jpg"),
-              fit: BoxFit.cover,
-            ),
-          ),
         ),
       ),
     );

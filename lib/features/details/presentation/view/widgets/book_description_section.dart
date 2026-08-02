@@ -15,8 +15,7 @@ class BookDescriptionSection extends StatefulWidget {
   final int collapsedMaxLines;
 
   @override
-  State<BookDescriptionSection> createState() =>
-      _BookDescriptionSectionState();
+  State<BookDescriptionSection> createState() => _BookDescriptionSectionState();
 }
 
 class _BookDescriptionSectionState extends State<BookDescriptionSection> {
@@ -29,7 +28,6 @@ class _BookDescriptionSectionState extends State<BookDescriptionSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Header Title
           Text(
             widget.title,
             style: const TextStyle(
@@ -40,15 +38,15 @@ class _BookDescriptionSectionState extends State<BookDescriptionSection> {
           ),
           const SizedBox(height: 12),
 
-          // Paragraph Content with expansion transition
           AnimatedSize(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             child: Text(
               widget.description,
               maxLines: _isExpanded ? null : widget.collapsedMaxLines,
-              overflow:
-                  _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: _isExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 15,
                 height: 1.5,
@@ -58,7 +56,6 @@ class _BookDescriptionSectionState extends State<BookDescriptionSection> {
           ),
           const SizedBox(height: 8),
 
-          // Read More / Read Less Clickable Action
           InkWell(
             onTap: () {
               setState(() {
