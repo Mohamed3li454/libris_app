@@ -43,19 +43,17 @@ class FilterChipItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: isSelected
-            ? const Color(0xFFFBE2AC) // Soft pale yellow / muted apricot
-            : const Color(0xFFEBEAE4), // Very light gray / neutral off-white
-        borderRadius: BorderRadius.circular(9999), // Fully pill-shaped
+        color: isSelected ? const Color(0xFFFBE2AC) : const Color(0xFFEBEAE4),
+        borderRadius: BorderRadius.circular(9999),
       ),
       alignment: Alignment.center,
       child: Text(
         label,
         style: TextStyle(
-          fontFamily: 'Inter', // Clean, modern sans-serif
+          fontFamily: 'Inter',
           fontSize: 16,
           fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-          color: const Color(0xFF2C2C2C), // Dark gray
+          color: const Color(0xFF2C2C2C),
         ),
       ),
     );

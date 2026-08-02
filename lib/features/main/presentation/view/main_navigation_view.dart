@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/core/widgets/custom_bottom_navigation_bar.dart';
 import 'package:libris_app/features/explore/presentation/view/explore_view.dart';
-import 'package:libris_app/features/home/presentation/view/widgets/home_view_body.dart';
+import 'package:libris_app/features/home/presentation/view/home_view.dart';
 import 'package:libris_app/features/library/presentation/view/library_view.dart';
 import 'package:libris_app/features/profile/presentation/view/profile_view.dart';
 
@@ -24,7 +24,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   late PageController _pageController;
 
   final List<Widget> _views = const [
-    HomeViewBody(),
+    HomeView(),
     ExploreView(),
     LibraryView(),
     ProfileView(),

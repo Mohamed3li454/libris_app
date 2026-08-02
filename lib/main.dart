@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
+import 'package:libris_app/core/widgets/router.dart';
 import 'constants/app_colors.dart';
 
 void main() {
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -24,8 +24,7 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: AppColors.background,
       ),
-      home: const MainNavigationView(),
+      routerConfig: router,
     );
   }
 }
-
