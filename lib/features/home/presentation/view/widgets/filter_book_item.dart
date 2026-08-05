@@ -1,8 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/models/book_model.dart';
 
 class FilterBookItem extends StatelessWidget {
-  const FilterBookItem({super.key});
+  final BookModel bookModel;
+
+  const FilterBookItem({super.key, required this.bookModel});
 
   @override
   Widget build(BuildContext context) {
@@ -15,17 +18,32 @@ class FilterBookItem extends StatelessWidget {
             height: 120,
             width: 80,
             decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: 0.30),
+                  blurRadius: 5,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 2),
                 ),
               ],
-              image: const DecorationImage(
-                image: AssetImage("assets/book.jpg"),
-                fit: BoxFit.cover,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: bookModel.coverUrl,
+                fit: BoxFit.fill,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.book, color: Colors.grey),
+                ),
               ),
             ),
           ),
@@ -36,15 +54,18 @@ class FilterBookItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  "The Great Gatsby",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  bookModel.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "F. Scott Fitzgerald",
+                  bookModel.authorName,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -53,19 +74,21 @@ class FilterBookItem extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star, color: AppColors.accent, size: 18),
-                    const SizedBox(width: 4),
-                    const Text(
-                      "5.0",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      color: Colors.grey[600],
+                      size: 14,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
-                      "(3000 reviews)",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      bookModel.firstPublishYear != null
+                          ? "${bookModel.firstPublishYear}"
+                          : "N/A",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                      ),
                     ),
                   ],
                 ),

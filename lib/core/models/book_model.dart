@@ -4,12 +4,11 @@ class BookResponseModel {
   BookResponseModel({required this.books});
 
   factory BookResponseModel.fromJson(Map<String, dynamic> json) {
+    List rawList = json['works'] ?? json['docs'] ?? [];
     return BookResponseModel(
-      books:
-          (json['works'] as List<dynamic>?)
-              ?.map((item) => BookModel.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
+      books: rawList
+          .map((item) => BookModel.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -30,15 +29,23 @@ class BookModel {
   });
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
-    final int? coverId = json['cover_i'];
+    final int? coverId = json['cover_id'] ?? json['cover_i'];
     final String coverImage = coverId != null
         ? 'https://covers.openlibrary.org/b/id/$coverId-L.jpg'
         : 'https://via.placeholder.com/150?text=No+Cover';
 
-    final List<dynamic>? authors = json['author_name'];
-    final String author = (authors != null && authors.isNotEmpty)
-        ? authors.first.toString()
-        : 'Unknown Author';
+    String author = 'Unknown Author';
+    if (json['authors'] != null && (json['authors'] as List).isNotEmpty) {
+      final firstAuthor = (json['authors'] as List).first;
+      if (firstAuthor is Map) {
+        author = firstAuthor['name'] ?? 'Unknown Author';
+      } else {
+        author = firstAuthor.toString();
+      }
+    } else if (json['author_name'] != null &&
+        (json['author_name'] as List).isNotEmpty) {
+      author = (json['author_name'] as List).first.toString();
+    }
 
     return BookModel(
       key: json['key'] ?? '',
