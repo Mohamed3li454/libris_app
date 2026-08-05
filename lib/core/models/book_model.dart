@@ -1,51 +1,84 @@
+class BookResponseModel {
+  final int totalItems;
+  final List<BookModel> books;
+
+  BookResponseModel({required this.totalItems, required this.books});
+
+  factory BookResponseModel.fromJson(Map<String, dynamic> json) {
+    return BookResponseModel(
+      totalItems: json['totalItems'] ?? 0,
+      books: json['items'] != null
+          ? List<BookModel>.from(
+              (json['items'] as List).map((x) => BookModel.fromJson(x)),
+            )
+          : [],
+    );
+  }
+}
+
 class BookModel {
   final String id;
   final String title;
   final String author;
+  final String publisher;
+  final String publishedDate;
+  final String description;
   final String coverUrl;
   final String category;
   final int pageCount;
   final String language;
-  final String description;
-  final String readerLink;
+  final String webReaderLink;
+  final String previewLink;
 
   BookModel({
     required this.id,
     required this.title,
     required this.author,
+    required this.publisher,
+    required this.publishedDate,
+    required this.description,
     required this.coverUrl,
     required this.category,
     required this.pageCount,
     required this.language,
-    required this.description,
-    required this.readerLink,
+    required this.webReaderLink,
+    required this.previewLink,
   });
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
-    final volumeInfo = json['volumeInfo'] ?? {};
-    final accessInfo = json['accessInfo'] ?? {};
-    final imageLinks = volumeInfo['imageLinks'] ?? {};
+    final volumeInfo = json['volumeInfo'] as Map<String, dynamic>? ?? {};
+    final accessInfo = json['accessInfo'] as Map<String, dynamic>? ?? {};
+    final imageLinks = volumeInfo['imageLinks'] as Map<String, dynamic>? ?? {};
 
-    String rawCover =
+    String rawCoverUrl =
         imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '';
-    String secureCover = rawCover.replaceFirst('http://', 'https://');
+    String secureCoverUrl = rawCoverUrl.replaceFirst('http://', 'https://');
 
-    List authors = volumeInfo['authors'] ?? [];
-    String authorName = authors.isNotEmpty ? authors[0] : 'Unknown Author';
+    List authorsList = volumeInfo['authors'] as List? ?? [];
+    String authorName = authorsList.isNotEmpty
+        ? authorsList.first.toString()
+        : 'Unknown Author';
 
-    List categories = volumeInfo['categories'] ?? [];
-    String categoryName = categories.isNotEmpty ? categories[0] : 'General';
+    List categoriesList = volumeInfo['categories'] as List? ?? [];
+    String categoryName = categoriesList.isNotEmpty
+        ? categoriesList.first.toString()
+        : 'General';
 
     return BookModel(
       id: json['id'] ?? '',
       title: volumeInfo['title'] ?? 'No Title',
       author: authorName,
-      coverUrl: secureCover,
+      publisher: volumeInfo['publisher'] ?? 'Unknown Publisher',
+      publishedDate: volumeInfo['publishedDate'] ?? '',
+      description:
+          volumeInfo['description'] ??
+          'No description available for this book.',
+      coverUrl: secureCoverUrl,
       category: categoryName,
       pageCount: volumeInfo['pageCount'] ?? 0,
-      language: (volumeInfo['language'] ?? 'EN').toString().toUpperCase(),
-      description: volumeInfo['description'] ?? 'No description available.',
-      readerLink: accessInfo['webReaderLink'] ?? '',
+      language: (volumeInfo['language'] ?? 'en').toString().toUpperCase(),
+      webReaderLink: accessInfo['webReaderLink'] ?? '',
+      previewLink: volumeInfo['previewLink'] ?? '',
     );
   }
 }

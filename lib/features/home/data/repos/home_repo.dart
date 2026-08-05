@@ -1,6 +1,8 @@
+import 'package:dartz/dartz.dart';
+import 'package:libris_app/core/errors/failure.dart';
 import 'package:libris_app/core/models/book_model.dart';
 
 abstract class HomeRepo {
-  Future<List<BookModel>> fetchNewestBooks();
-  Future<List<BookModel>> fetchFeaturedBooks();
+  Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks();
+  Future<Either<Failure, List<BookModel>>> fetchFilterBooks();
 }
