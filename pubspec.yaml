@@ -41,6 +41,8 @@ dependencies:
   http: ^1.6.0
   dartz: ^0.10.1
   dio: ^5.11.0
+  flutter_bloc: ^9.1.1
+  equatable: ^2.1.0
 
 dev_dependencies:
   flutter_test:

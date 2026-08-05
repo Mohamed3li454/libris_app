@@ -11,6 +11,11 @@ class FilterChipsList extends StatelessWidget {
       'Fiction',
       'History',
       'Business',
+      'Science',
+      'Programming',
+      'Thriller',
+      'Romance',
+      'Motivational',
     ];
 
     return SizedBox(
