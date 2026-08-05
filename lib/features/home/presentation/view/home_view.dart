@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libris_app/features/home/presentation/manager/featured%20books%20cubit/featured_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/home_view_body.dart';
 
 class HomeView extends StatelessWidget {
@@ -6,6 +8,9 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const HomeViewBody();
+    return BlocProvider(
+      create: (context) => FeaturedBooksCubit()..fetchFeaturedBooks(),
+      child: const HomeViewBody(),
+    );
   }
 }

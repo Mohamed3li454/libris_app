@@ -14,7 +14,7 @@ class HomeRepoImpl implements HomeRepo {
   Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks() async {
     try {
       var data = await apiService.getData(
-        endPoint: "volumes?q=featured&maxResults=10",
+        endPoint: "trending/daily.json?limit=20",
       );
       final bookResponse = BookResponseModel.fromJson(data);
       return right(bookResponse.books);

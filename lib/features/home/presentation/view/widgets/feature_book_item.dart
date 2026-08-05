@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class FeatureBookItem extends StatelessWidget {
-  const FeatureBookItem({super.key});
+  const FeatureBookItem({super.key, required this.imageUrl});
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +22,9 @@ class FeatureBookItem extends StatelessWidget {
                 blurRadius: 5,
               ),
             ],
-            image: const DecorationImage(
-              image: AssetImage("assets/book.jpg"),
-              fit: BoxFit.cover,
+            image: DecorationImage(
+              image: NetworkImage(imageUrl),
+              fit: BoxFit.fill,
             ),
           ),
         ),

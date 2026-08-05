@@ -1,21 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:libris_app/constants/api_constants.dart';
-import 'package:libris_app/core/errors/failure.dart';
 
 class ApiService {
-  final String baseUrl = "https://www.googleapis.com/books/v1/volumes?";
-  final String apiKey = ApiConstants.apiKey;
+  final String baseUrl = "https://openlibrary.org/";
   final Dio _dio;
 
-  ApiService({required this._dio});
+  ApiService({required Dio dio}) : _dio = dio;
 
   Future<Map<String, dynamic>> getData({required String endPoint}) async {
-    String url = "$baseUrl$endPoint&key=$apiKey";
-    try {
-      Response response = await _dio.get(url);
-      return response.data;
-    } on DioException catch (e) {
-      throw ServerFailure.fromDioError(e);
-    }
+    Response response = await _dio.get("$baseUrl$endPoint");
+    return response.data;
   }
 }
