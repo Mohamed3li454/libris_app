@@ -4,5 +4,7 @@ import 'package:libris_app/core/models/book_model.dart';
 
 abstract class HomeRepo {
   Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks();
-  Future<Either<Failure, List<BookModel>>> fetchFilterBooks();
+  Future<Either<Failure, List<BookModel>>> fetchFilterBooks({
+    required String category,
+  });
 }
