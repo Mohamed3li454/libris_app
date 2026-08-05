@@ -62,7 +62,7 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
                     horizontal: 6,
                     vertical: 8,
                   ),
-                  child: FeatureBookItem(imageUrl: state.books[index].coverUrl),
+                  child: FeatureBookItem(bookModel: state.books[index]),
                 ),
               );
             },

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/core/utils/styles.dart';
+import 'package:libris_app/features/details/presentation/view/widgets/book_description_section.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_details_item.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_header_info.dart';
-import 'package:libris_app/features/details/presentation/view/widgets/book_description_section.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_stats_card.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/custom_appbar.dart';
 
 class DetailsViewBody extends StatelessWidget {
-  const DetailsViewBody({super.key});
+  final BookModel? bookModel;
+
+  const DetailsViewBody({super.key, this.bookModel});
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +47,14 @@ class DetailsViewBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const BookDetailsItem(),
+            BookDetailsItem(imageUrl: bookModel?.coverUrl),
             const SizedBox(height: 12),
-            const BookHeaderInfo(),
+            BookHeaderInfo(
+              title: bookModel?.title ?? 'Book Details',
+              author: bookModel?.authorName ?? '',
+            ),
             const SizedBox(height: 4),
-            const BookStatsCard(),
+            BookStatsCard(publishYear: bookModel?.firstPublishYear),
             const BookDescriptionSection(),
           ],
         ),

@@ -1,16 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libris_app/core/models/book_model.dart';
 
 class FeatureBookItem extends StatelessWidget {
-  const FeatureBookItem({super.key, required this.imageUrl});
-  final String imageUrl;
+  const FeatureBookItem({super.key, required this.bookModel});
+  final BookModel bookModel;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        GoRouter.of(context).push('/details');
+        GoRouter.of(context).push('/details', extra: bookModel);
       },
       child: AspectRatio(
         aspectRatio: 2.6 / 4,
@@ -23,7 +24,6 @@ class FeatureBookItem extends StatelessWidget {
                 color: Colors.black.withValues(alpha: 0.30),
                 blurRadius: 5,
                 spreadRadius: 1,
-
                 offset: const Offset(0, 2),
               ),
             ],
@@ -31,7 +31,7 @@ class FeatureBookItem extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
-              imageUrl: imageUrl,
+              imageUrl: bookModel.coverUrl,
               fit: BoxFit.fill,
               placeholder: (context, url) => Container(
                 color: Colors.grey[200],
