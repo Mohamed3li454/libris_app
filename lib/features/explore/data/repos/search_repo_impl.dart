@@ -19,7 +19,10 @@ class SearchRepoImpl implements SearchRepo {
     } catch (e) {
       if (e is Failure) return left(e);
       if (e is DioException) return left(ServerFailure.fromDioError(e));
-      return left(ServerFailure(e.toString()));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
+      }
+      return left(ServerFailure('Search failed. Please try again.'));
     }
   }
 
@@ -34,7 +37,12 @@ class SearchRepoImpl implements SearchRepo {
     } catch (e) {
       if (e is Failure) return left(e);
       if (e is DioException) return left(ServerFailure.fromDioError(e));
-      return left(ServerFailure(e.toString()));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
+      }
+      return left(
+        ServerFailure('Failed to load category books. Please try again.'),
+      );
     }
   }
 }

@@ -10,21 +10,25 @@ class BookActionBottomBar extends StatelessWidget {
   const BookActionBottomBar({super.key, this.fallbackWorkKey});
 
   Future<void> _launchURL(BuildContext context, String urlString) async {
-    final Uri uri = Uri.parse(urlString);
     try {
+      final Uri uri = Uri.parse(urlString);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not launch link: $urlString')),
+            const SnackBar(
+              content: Text('Unable to open link. Please check your browser.'),
+            ),
           );
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error launching link: $e')),
+          const SnackBar(
+            content: Text('Unable to open link. Please check your browser.'),
+          ),
         );
       }
     }

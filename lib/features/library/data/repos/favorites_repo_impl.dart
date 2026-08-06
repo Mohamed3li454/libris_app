@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:libris_app/constants/hive_constants.dart';
 import 'package:libris_app/core/models/book_model.dart';
@@ -12,29 +13,43 @@ class FavoritesRepoImpl implements FavoritesRepo {
       final List<BookModel> books = [];
       for (var key in _box.keys) {
         final item = _box.get(key);
-        if (item != null) {
-          books.add(BookModel.fromJson(Map<String, dynamic>.from(item as Map)));
+        if (item != null && item is Map) {
+          books.add(BookModel.fromJson(Map<String, dynamic>.from(item)));
         }
       }
       return books;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error loading favorite books: $e');
       return [];
     }
   }
 
   @override
   Future<void> addFavoriteBook(BookModel book) async {
-    await _box.put(book.key, book.toJson());
+    try {
+      await _box.put(book.key, book.toJson());
+    } catch (e) {
+      debugPrint('Error saving favorite book: $e');
+    }
   }
 
   @override
   Future<void> removeFavoriteBook(String key) async {
-    await _box.delete(key);
+    try {
+      await _box.delete(key);
+    } catch (e) {
+      debugPrint('Error removing favorite book: $e');
+    }
   }
 
   @override
   bool isBookFavorite(String key) {
-    return _box.containsKey(key);
+    try {
+      return _box.containsKey(key);
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+      return false;
+    }
   }
 
   @override

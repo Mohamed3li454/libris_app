@@ -31,13 +31,14 @@ class DetailsRepoImpl implements DetailsRepo {
 
       return right(detailModel);
     } catch (e) {
-      if (e is Failure) {
-        return left(e);
+      if (e is Failure) return left(e);
+      if (e is DioException) return left(ServerFailure.fromDioError(e));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
       }
-      if (e is DioException) {
-        return left(ServerFailure.fromDioError(e));
-      }
-      return left(ServerFailure(e.toString()));
+      return left(
+        ServerFailure('Failed to load book details. Please try again.'),
+      );
     }
   }
 }

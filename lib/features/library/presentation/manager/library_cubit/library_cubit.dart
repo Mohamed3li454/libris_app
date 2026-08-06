@@ -17,25 +17,35 @@ class LibraryCubit extends Cubit<LibraryState> {
     emit(LibraryLoading());
     try {
       final books = favoritesRepo.getFavoriteBooks();
+      if (isClosed) return;
+
       if (books.isEmpty) {
         emit(LibraryEmpty());
       } else {
         emit(LibrarySuccess(books));
       }
-    } catch (e) {
-      emit(LibraryFailure(e.toString()));
+    } catch (_) {
+      if (!isClosed) {
+        emit(
+          const LibraryFailure('Failed to load saved books. Please try again.'),
+        );
+      }
     }
   }
 
   Future<bool> toggleFavoriteBook(BookModel book) async {
     final isFav = await favoritesRepo.toggleFavoriteBook(book);
-    fetchFavoriteBooks();
+    if (!isClosed) {
+      fetchFavoriteBooks();
+    }
     return isFav;
   }
 
   Future<void> removeFavoriteBook(String key) async {
     await favoritesRepo.removeFavoriteBook(key);
-    fetchFavoriteBooks();
+    if (!isClosed) {
+      fetchFavoriteBooks();
+    }
   }
 
   bool isBookFavorite(String key) {

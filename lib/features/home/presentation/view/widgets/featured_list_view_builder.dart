@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libris_app/core/widgets/custom_error_widget.dart';
 import 'package:libris_app/features/home/presentation/manager/featured%20books%20cubit/featured_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/feature_book_item.dart';
 
@@ -68,7 +69,14 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
             },
           );
         } else if (state is FeaturedBooksFailure) {
-          return Center(child: Text(state.errMessage));
+          return CustomErrorWidget(
+            errMessage: state.errMessage,
+            onRetry: () {
+              BlocProvider.of<FeaturedBooksCubit>(
+                context,
+              ).fetchFeaturedBooks();
+            },
+          );
         } else {
           return const SizedBox();
         }

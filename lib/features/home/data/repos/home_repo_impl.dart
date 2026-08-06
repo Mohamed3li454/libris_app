@@ -25,22 +25,27 @@ class HomeRepoImpl implements HomeRepo {
       return right(bookResponse.books);
     } catch (e) {
       if (box.containsKey('featured_list')) {
-        List cachedRawList = box.get('featured_list') as List;
-        List<BookModel> cachedBooks = cachedRawList
-            .map((item) => BookModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
-        if (cachedBooks.isNotEmpty) {
-          return right(cachedBooks);
-        }
+        try {
+          List cachedRawList = box.get('featured_list') as List;
+          List<BookModel> cachedBooks =
+              cachedRawList
+                  .map(
+                    (item) =>
+                        BookModel.fromJson(Map<String, dynamic>.from(item)),
+                  )
+                  .toList();
+          if (cachedBooks.isNotEmpty) {
+            return right(cachedBooks);
+          }
+        } catch (_) {}
       }
 
-      if (e is Failure) {
-        return left(e);
+      if (e is Failure) return left(e);
+      if (e is DioException) return left(ServerFailure.fromDioError(e));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
       }
-      if (e is DioException) {
-        return left(ServerFailure.fromDioError(e));
-      }
-      return left(ServerFailure(e.toString()));
+      return left(ServerFailure('Failed to load books. Please try again.'));
     }
   }
 
@@ -49,9 +54,10 @@ class HomeRepoImpl implements HomeRepo {
     required String category,
   }) async {
     var box = Hive.box(kFilterBox);
-    String subject = (category.isEmpty || category.toLowerCase() == 'all')
-        ? 'general'
-        : category.toLowerCase();
+    String subject =
+        (category.isEmpty || category.toLowerCase() == 'all')
+            ? 'general'
+            : category.toLowerCase();
 
     try {
       var data = await apiService.getData(
@@ -63,22 +69,27 @@ class HomeRepoImpl implements HomeRepo {
       return right(bookResponse.books);
     } catch (e) {
       if (box.containsKey(subject)) {
-        List cachedRawList = box.get(subject) as List;
-        List<BookModel> cachedBooks = cachedRawList
-            .map((item) => BookModel.fromJson(Map<String, dynamic>.from(item)))
-            .toList();
-        if (cachedBooks.isNotEmpty) {
-          return right(cachedBooks);
-        }
+        try {
+          List cachedRawList = box.get(subject) as List;
+          List<BookModel> cachedBooks =
+              cachedRawList
+                  .map(
+                    (item) =>
+                        BookModel.fromJson(Map<String, dynamic>.from(item)),
+                  )
+                  .toList();
+          if (cachedBooks.isNotEmpty) {
+            return right(cachedBooks);
+          }
+        } catch (_) {}
       }
 
-      if (e is Failure) {
-        return left(e);
+      if (e is Failure) return left(e);
+      if (e is DioException) return left(ServerFailure.fromDioError(e));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
       }
-      if (e is DioException) {
-        return left(ServerFailure.fromDioError(e));
-      }
-      return left(ServerFailure(e.toString()));
+      return left(ServerFailure('Failed to load books. Please try again.'));
     }
   }
 }

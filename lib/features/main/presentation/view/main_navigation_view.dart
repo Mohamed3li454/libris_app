@@ -3,17 +3,11 @@ import 'package:libris_app/core/widgets/custom_bottom_navigation_bar.dart';
 import 'package:libris_app/features/explore/presentation/view/explore_view.dart';
 import 'package:libris_app/features/home/presentation/view/home_view.dart';
 import 'package:libris_app/features/library/presentation/view/library_view.dart';
-import 'package:libris_app/features/profile/presentation/view/profile_view.dart';
 
-/// Main navigation screen featuring a BottomNavigationBar and sliding animations
-/// when switching between 4 separate views using PageView and PageController.
 class MainNavigationView extends StatefulWidget {
   final int initialIndex;
 
-  const MainNavigationView({
-    super.key,
-    this.initialIndex = 0, // Default selected tab is Home (index 0)
-  });
+  const MainNavigationView({super.key, this.initialIndex = 0});
 
   @override
   State<MainNavigationView> createState() => _MainNavigationViewState();
@@ -23,12 +17,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   late int _currentIndex;
   late PageController _pageController;
 
-  final List<Widget> _views = const [
-    HomeView(),
-    ExploreView(),
-    LibraryView(),
-    ProfileView(),
-  ];
+  final List<Widget> _views = const [HomeView(), ExploreView(), LibraryView()];
 
   @override
   void initState() {

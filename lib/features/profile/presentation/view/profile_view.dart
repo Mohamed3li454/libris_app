@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
 
-class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+class ProfileView3 extends StatelessWidget {
+  const ProfileView3({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +24,7 @@ class ProfileView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Manage your account details and reading preferences.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
             const SizedBox(height: 32),
             Expanded(
@@ -59,10 +56,7 @@ class ProfileView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'User profile and preferences will be configured here.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),

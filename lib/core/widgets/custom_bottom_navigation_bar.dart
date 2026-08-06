@@ -56,11 +56,6 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
       activeIcon: Icons.menu_book,
       label: 'Library',
     ),
-    NavItemData(
-      icon: Icons.person_outline,
-      activeIcon: Icons.person,
-      label: 'Profile',
-    ),
   ];
 
   @override
