@@ -7,7 +7,7 @@ class BookResponseModel {
     List rawList = json['works'] ?? json['docs'] ?? [];
     return BookResponseModel(
       books: rawList
-          .map((item) => BookModel.fromJson(item as Map<String, dynamic>))
+          .map((item) => BookModel.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList(),
     );
   }
@@ -30,9 +30,11 @@ class BookModel {
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
     final int? coverId = json['cover_id'] ?? json['cover_i'];
-    final String coverImage = coverId != null
-        ? 'https://covers.openlibrary.org/b/id/$coverId-L.jpg'
-        : 'https://via.placeholder.com/150?text=No+Cover';
+    final String coverImage =
+        json['cover_url'] ??
+        (coverId != null
+            ? 'https://covers.openlibrary.org/b/id/$coverId-L.jpg'
+            : 'https://via.placeholder.com/150?text=No+Cover');
 
     String author = 'Unknown Author';
     if (json['authors'] != null && (json['authors'] as List).isNotEmpty) {
@@ -54,5 +56,15 @@ class BookModel {
       coverUrl: coverImage,
       firstPublishYear: json['first_publish_year'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'key': key,
+      'title': title,
+      'author_name': [authorName],
+      'cover_url': coverUrl,
+      'first_publish_year': firstPublishYear,
+    };
   }
 }

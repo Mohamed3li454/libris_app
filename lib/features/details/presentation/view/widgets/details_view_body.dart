@@ -6,6 +6,7 @@ import 'package:libris_app/features/details/presentation/view/widgets/book_descr
 import 'package:libris_app/features/details/presentation/view/widgets/book_details_item.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_header_info.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_stats_card.dart';
+import 'package:libris_app/features/details/presentation/view/widgets/favorite_icon_button.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/custom_appbar.dart';
 
 class DetailsViewBody extends StatelessWidget {
@@ -37,14 +38,7 @@ class DetailsViewBody extends StatelessWidget {
                   fontSize: 28,
                 ),
               ),
-              trailing: IconButton(
-                icon: const Icon(
-                  Icons.share,
-                  size: 28,
-                  color: AppColors.primary,
-                ),
-                onPressed: () {},
-              ),
+              trailing: FavoriteIconButton(bookModel: bookModel),
             ),
             const SizedBox(height: 8),
             BookDetailsItem(imageUrl: bookModel?.coverUrl),

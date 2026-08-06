@@ -11,6 +11,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox(kFeaturedBox);
   await Hive.openBox(kFilterBox);
+  await Hive.openBox(kFavoritesBox);
   runApp(const MyApp());
 }
 
