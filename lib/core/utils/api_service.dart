@@ -20,4 +20,14 @@ class ApiService {
     String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
     return await getData(endPoint: "$cleanKey/ratings.json");
   }
+
+  Future<Map<String, dynamic>> searchBooks(String query) async {
+    final encodedQuery = Uri.encodeComponent(query);
+    return await getData(endPoint: "search.json?q=$encodedQuery&limit=20");
+  }
+
+  Future<Map<String, dynamic>> fetchBooksBySubject(String subject) async {
+    final cleanSubject = subject.toLowerCase().replaceAll(' ', '_');
+    return await getData(endPoint: "subjects/$cleanSubject.json?limit=20");
+  }
 }
