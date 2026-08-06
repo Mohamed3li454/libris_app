@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
 
-/// Data class representing each navigation tab item.
 class NavItemData {
   final IconData icon;
   final IconData? activeIcon;
@@ -10,8 +9,6 @@ class NavItemData {
   const NavItemData({required this.icon, this.activeIcon, required this.label});
 }
 
-/// A custom, animated BottomNavigationBar widget designed with warm beige tones,
-/// pill-shaped active state containers, and smooth tab switching transitions.
 class CustomBottomNavigationBar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int>? onItemTapped;
@@ -23,7 +20,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
 
   const CustomBottomNavigationBar({
     super.key,
-    this.selectedIndex = 0, // Default active index set to Home (index 0)
+    this.selectedIndex = 0,
     this.onItemTapped,
     this.backgroundColor = AppColors.background,
     this.activePillColor = const Color(0xFFE8DFC8),

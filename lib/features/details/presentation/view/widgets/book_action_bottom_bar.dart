@@ -45,10 +45,9 @@ class BookActionBottomBar extends StatelessWidget {
           readUrl = state.bookDetail.readUrl;
           downloadUrl = state.bookDetail.downloadUrl;
         } else if (fallbackWorkKey != null && fallbackWorkKey!.isNotEmpty) {
-          String cleanKey =
-              fallbackWorkKey!.startsWith('/')
-                  ? fallbackWorkKey!
-                  : '/$fallbackWorkKey';
+          String cleanKey = fallbackWorkKey!.startsWith('/')
+              ? fallbackWorkKey!
+              : '/$fallbackWorkKey';
           readUrl = 'https://openlibrary.org$cleanKey';
           downloadUrl = 'https://openlibrary.org$cleanKey';
         }
@@ -69,7 +68,6 @@ class BookActionBottomBar extends StatelessWidget {
             top: false,
             child: Row(
               children: [
-                // Button 1: Download PDF (Secondary Action)
                 Expanded(
                   child: SizedBox(
                     height: 52,
@@ -111,7 +109,6 @@ class BookActionBottomBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Button 2: Read Now (Primary Action)
                 Expanded(
                   child: SizedBox(
                     height: 52,

@@ -48,7 +48,6 @@ class BookDetailModel {
     readLink ??= defaultOpenLibUrl;
     downloadLink ??= defaultOpenLibUrl;
 
-    // Parse description (handle both String and Map {"type": "...", "value": "..."})
     String descText = 'No description available for this book.';
     final rawDesc = detailsJson['description'];
     if (rawDesc != null) {
@@ -59,7 +58,6 @@ class BookDetailModel {
       }
     }
 
-    // Parse subjects & primary category badge
     List<String> subjectList = [];
     final rawSubjects = detailsJson['subjects'];
     if (rawSubjects is List) {
@@ -67,7 +65,6 @@ class BookDetailModel {
     }
     String category = subjectList.isNotEmpty ? subjectList.first : 'General';
 
-    // Parse ratings summary
     double avgRating = 0.0;
     int count = 0;
     if (ratingJson != null && ratingJson['summary'] != null) {

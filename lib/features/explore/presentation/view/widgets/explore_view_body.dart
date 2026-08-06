@@ -78,8 +78,6 @@ class _ExploreViewBodyState extends State<ExploreViewBody> {
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
             const SizedBox(height: 20),
-
-            // Search Bar
             CustomSearchTextField(
               controller: _searchController,
               onChanged: (value) {
@@ -93,8 +91,6 @@ class _ExploreViewBodyState extends State<ExploreViewBody> {
               onClear: _clearSearch,
             ),
             const SizedBox(height: 16),
-
-            // Category Chips List
             ExploreCategoryChipsList(
               categories: categories,
               selectedCategory: _selectedCategory,
@@ -102,8 +98,6 @@ class _ExploreViewBodyState extends State<ExploreViewBody> {
               onClearSelection: _clearSearch,
             ),
             const SizedBox(height: 16),
-
-            // Search & Explore Content Area
             Expanded(
               child: BlocBuilder<ExploreCubit, ExploreState>(
                 builder: (context, state) {
@@ -114,8 +108,8 @@ class _ExploreViewBodyState extends State<ExploreViewBody> {
                       padding: const EdgeInsets.only(bottom: 20),
                       physics: const BouncingScrollPhysics(),
                       itemCount: state.books.length,
-                      separatorBuilder:
-                          (context, index) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         return FilterBookItem(bookModel: state.books[index]);
                       },
