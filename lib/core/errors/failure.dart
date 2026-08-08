@@ -68,11 +68,10 @@ class ServerFailure extends Failure {
 
 class FormatFailure extends Failure {
   const FormatFailure([
-    String message = 'Unable to process book data. Please try again.',
-  ]) : super(message);
+    super.message = 'Unable to process book data. Please try again.',
+  ]);
 }
 
 class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Failed to load saved offline data.'])
-    : super(message);
+  const CacheFailure([super.message = 'Failed to load saved offline data.']);
 }

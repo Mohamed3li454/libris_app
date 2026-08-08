@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
 import 'package:libris_app/features/home/presentation/manager/filter_books_cubit/filter_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/filter_book_item.dart';
+import 'package:libris_app/features/home/presentation/view/widgets/filter_books_shimmer_loading.dart';
 
 class FilterBookSliverListView extends StatelessWidget {
   const FilterBookSliverListView({super.key});
@@ -41,14 +42,7 @@ class FilterBookSliverListView extends StatelessWidget {
             ),
           );
         } else if (state is FilterBooksLoading) {
-          return const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
+          return const FilterBooksShimmerLoading();
         } else {
           return const SliverToBoxAdapter(child: SizedBox());
         }

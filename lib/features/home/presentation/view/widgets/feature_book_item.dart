@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
+import 'package:shimmer/shimmer.dart';
 
 class FeatureBookItem extends StatelessWidget {
   const FeatureBookItem({super.key, required this.bookModel});
@@ -33,16 +34,17 @@ class FeatureBookItem extends StatelessWidget {
             child: CachedNetworkImage(
               imageUrl: bookModel.coverUrl,
               fit: BoxFit.fill,
-              placeholder: (context, url) => Container(
-                color: Colors.grey[200],
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey[300],
-                child: const Icon(Icons.error_outline, color: Colors.grey),
-              ),
+              placeholder:
+                  (context, url) => Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(color: Colors.white),
+                  ),
+              errorWidget:
+                  (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.error_outline, color: Colors.grey),
+                  ),
             ),
           ),
         ),
