@@ -2,10 +2,24 @@ import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/features/details/presentation/view/details_view.dart';
 import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
+import 'package:libris_app/features/onboarding/presentation/view/onboarding_view.dart';
+import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
 
 final router = GoRouter(
+  initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const MainNavigationView()),
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const SplashView(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingView(),
+    ),
+    GoRoute(
+      path: '/main',
+      builder: (context, state) => const MainNavigationView(),
+    ),
     GoRoute(
       path: '/details',
       builder: (context, state) {
@@ -15,3 +29,4 @@ final router = GoRouter(
     ),
   ],
 );
+
