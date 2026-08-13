@@ -81,6 +81,28 @@ class ExploreCubit extends Cubit<ExploreState> {
     );
   }
 
+  Future<void> fetchTrendingBooks({int limit = 50}) async {
+    _debounceTimer?.cancel();
+    emit(ExploreLoading());
+    var result = await searchRepo.fetchTrendingBooks(limit: limit);
+    if (isClosed) return;
+
+    result.fold(
+      (failure) {
+        if (!isClosed) emit(ExploreFailure(failure.errMessage));
+      },
+      (books) {
+        if (!isClosed) {
+          if (books.isEmpty) {
+            emit(const ExploreEmpty('Featured Books'));
+          } else {
+            emit(ExploreSuccess(books: books, query: 'Featured Books'));
+          }
+        }
+      },
+    );
+  }
+
   void resetSearch() {
     _debounceTimer?.cancel();
     if (!isClosed) emit(ExploreInitial());

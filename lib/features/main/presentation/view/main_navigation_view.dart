@@ -9,15 +9,18 @@ class MainNavigationView extends StatefulWidget {
 
   const MainNavigationView({super.key, this.initialIndex = 0});
 
+  static MainNavigationViewState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainNavigationViewState>();
+  }
+
   @override
-  State<MainNavigationView> createState() => _MainNavigationViewState();
+  State<MainNavigationView> createState() => MainNavigationViewState();
 }
 
-class _MainNavigationViewState extends State<MainNavigationView> {
+class MainNavigationViewState extends State<MainNavigationView> {
   late int _currentIndex;
   late PageController _pageController;
-
-  final List<Widget> _views = const [HomeView(), ExploreView(), LibraryView()];
+  String? _exploreSearchQuery;
 
   @override
   void initState() {
@@ -30,6 +33,18 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void navigateToExploreWithQuery(String query) {
+    setState(() {
+      _exploreSearchQuery = query;
+      _currentIndex = 1;
+    });
+    _pageController.animateToPage(
+      1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _onTabSelected(int index) {
@@ -54,7 +69,14 @@ class _MainNavigationViewState extends State<MainNavigationView> {
             _currentIndex = index;
           });
         },
-        children: _views,
+        children: [
+          const HomeView(),
+          ExploreView(
+            key: ValueKey(_exploreSearchQuery),
+            initialQuery: _exploreSearchQuery,
+          ),
+          const LibraryView(),
+        ],
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _currentIndex,

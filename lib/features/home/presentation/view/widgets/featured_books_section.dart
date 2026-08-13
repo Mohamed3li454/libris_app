@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/core/utils/styles.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/featured_list_view_builder.dart';
+import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
 
 class FeaturedBooksSection extends StatelessWidget {
   const FeaturedBooksSection({super.key});
@@ -19,7 +20,14 @@ class FeaturedBooksSection extends StatelessWidget {
                 "Featured for you",
                 style: Styles.intelStyle.copyWith(fontSize: 22),
               ),
-              TextButton(onPressed: () {}, child: const Text("See All")),
+              TextButton(
+                onPressed: () {
+                  MainNavigationView.of(
+                    context,
+                  )?.navigateToExploreWithQuery("trending_all");
+                },
+                child: const Text("See All"),
+              ),
             ],
           ),
         ),

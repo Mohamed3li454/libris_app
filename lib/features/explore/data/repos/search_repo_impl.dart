@@ -45,4 +45,24 @@ class SearchRepoImpl implements SearchRepo {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, List<BookModel>>> fetchTrendingBooks({
+    int limit = 50,
+  }) async {
+    try {
+      var data = await apiService.fetchTrendingBooks(limit: limit);
+      final bookResponse = BookResponseModel.fromJson(data);
+      return right(bookResponse.books);
+    } catch (e) {
+      if (e is Failure) return left(e);
+      if (e is DioException) return left(ServerFailure.fromDioError(e));
+      if (e is FormatException || e is TypeError) {
+        return left(const FormatFailure());
+      }
+      return left(
+        ServerFailure('Failed to load trending books. Please try again.'),
+      );
+    }
+  }
 }
