@@ -23,20 +23,20 @@ class _OnboardingViewState extends State<OnboardingView> {
       title: "Discover Great Books",
       subtitle:
           "Explore thousands of books, authors, and trending titles in one place.",
-      icon: Icons.explore_outlined,
+      lottiePath: "assets/search_list.json",
       badgeText: "DISCOVER",
     ),
     OnboardingModel(
       title: "Read & Download",
       subtitle:
           "Access book details, read summaries, or download PDFs easily.",
-      icon: Icons.menu_book_outlined,
+      lottiePath: "assets/read_icon.json",
       badgeText: "READ",
     ),
     OnboardingModel(
       title: "Build Your Library",
       subtitle: "Save your favorite books to read anytime offline.",
-      icon: Icons.local_library_outlined,
+      lottiePath: "assets/save.json",
       badgeText: "LIBRARY",
     ),
   ];

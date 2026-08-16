@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/features/onboarding/data/models/onboarding_model.dart';
+import 'package:lottie/lottie.dart';
 
 class OnboardingItem extends StatelessWidget {
   final OnboardingModel model;
@@ -17,8 +18,8 @@ class OnboardingItem extends StatelessWidget {
         children: [
           // Illustration / Graphic Container
           Container(
-            width: 240,
-            height: 240,
+            width: 260,
+            height: 260,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.08),
@@ -36,8 +37,8 @@ class OnboardingItem extends StatelessWidget {
             ),
             child: Center(
               child: Container(
-                width: 170,
-                height: 170,
+                width: 190,
+                height: 190,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -49,10 +50,13 @@ class OnboardingItem extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: Icon(
-                  model.icon,
-                  size: 84,
-                  color: AppColors.primary,
+                child: Center(
+                  child: Lottie.asset(
+                    model.lottiePath,
+                    width: 180,
+                    height: 180,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
