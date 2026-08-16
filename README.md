@@ -40,7 +40,7 @@ A modern, high-performance Flutter application built for seamless book discovery
 - **🔍 Book Exploration & Search**: Real-time multi-criteria search by title, author, or genre. Built with input debouncing and minimum query validation to optimize API request efficiency and minimize latency.
 - **📚 Comprehensive Book Details**: Deep-dive into metadata including detailed overview summaries, author credits, edition counts, average ratings, and instant action controls (*Read Preview* / *Download PDF*).
 - **❤️ Personal Library & Offline Favorites**: Save favorite books locally with one-tap persistence using Hive. Saved titles are neatly rendered in an adaptive 2-column grid layout accessible offline.
-- **🚀 First-Time Onboarding Walkthrough**: Interactive multi-screen onboarding guide introducing app features to new users, backed by `SharedPreferences` for persistent launch state tracking.
+- **🚀 Interactive Onboarding Walkthrough**: Engaging multi-screen onboarding guide introducing app features with custom vector Lottie animations (`search_list.json`, `read_icon.json`, `save.json`) and `smooth_page_indicator`, backed by `SharedPreferences` for persistent launch state tracking.
 - **🛡️ Robust Error Handling & Fallbacks**: Centralized error sanitization mapping low-level network and API errors into friendly user messages, complete with custom retry states and shimmer loading screens.
 
 ---
@@ -60,6 +60,8 @@ A modern, high-performance Flutter application built for seamless book discovery
 | **Preferences** | `shared_preferences` | Onboarding state & app configuration persistence |
 | **Functional Error Handling** | `dartz` | `Either<Failure, T>` functional programming error flow |
 | **Navigation** | `go_router` | Declarative route management and deep-linking |
+| **Animations** | `lottie` | Rich vector JSON animations for interactive onboarding |
+| **UI Components** | `smooth_page_indicator`, `shimmer` | Page indicators and visual shimmer loading feedback |
 | **Design System** | Custom Warm Ivory Theme | Custom palette, `google_fonts`, `flutter_screenutil_plus` |
 | **Image Caching** | `cached_network_image` | Efficient image caching with placeholder shimmer support |
 
