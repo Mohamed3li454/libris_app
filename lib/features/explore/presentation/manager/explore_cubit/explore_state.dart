@@ -15,15 +15,25 @@ class ExploreSuccess extends ExploreState {
   final List<BookModel> books;
   final String? query;
   final String? activeCategory;
+  final bool hasMore;
+  final bool isLoadingMore;
 
   const ExploreSuccess({
     required this.books,
     this.query,
     this.activeCategory,
+    this.hasMore = false,
+    this.isLoadingMore = false,
   });
 
   @override
-  List<Object?> get props => [books, query, activeCategory];
+  List<Object?> get props => [
+    books,
+    query,
+    activeCategory,
+    hasMore,
+    isLoadingMore,
+  ];
 }
 
 class ExploreEmpty extends ExploreState {

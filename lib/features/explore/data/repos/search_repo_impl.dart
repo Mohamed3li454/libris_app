@@ -11,9 +11,13 @@ class SearchRepoImpl implements SearchRepo {
   SearchRepoImpl({required this.apiService});
 
   @override
-  Future<Either<Failure, List<BookModel>>> searchBooks(String query) async {
+  Future<Either<Failure, List<BookModel>>> searchBooks(
+    String query, {
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
-      var data = await apiService.searchBooks(query);
+      var data = await apiService.searchBooks(query, page: page, limit: limit);
       final bookResponse = BookResponseModel.fromJson(data);
       return right(bookResponse.books);
     } catch (e) {
@@ -28,10 +32,16 @@ class SearchRepoImpl implements SearchRepo {
 
   @override
   Future<Either<Failure, List<BookModel>>> fetchBooksBySubject(
-    String subject,
-  ) async {
+    String subject, {
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
-      var data = await apiService.fetchBooksBySubject(subject);
+      var data = await apiService.fetchBooksBySubject(
+        subject,
+        page: page,
+        limit: limit,
+      );
       final bookResponse = BookResponseModel.fromJson(data);
       return right(bookResponse.books);
     } catch (e) {

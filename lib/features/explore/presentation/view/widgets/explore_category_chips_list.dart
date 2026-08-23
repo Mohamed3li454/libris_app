@@ -20,10 +20,32 @@ class ExploreCategoryChipsList extends StatelessWidget {
       height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
+        physics: const BouncingScrollPhysics(),
+        itemCount: categories.length + 1,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = categories[index];
+          if (index == 0) {
+            final isAllSelected = selectedCategory == null;
+            return ChoiceChip(
+              label: const Text('All'),
+              selected: isAllSelected,
+              selectedColor: const Color(0xFFFBE2AC),
+              backgroundColor: const Color(0xFFEBEAE4),
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              labelStyle: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                fontWeight: isAllSelected ? FontWeight.w600 : FontWeight.w400,
+                color: const Color(0xFF2C2C2C),
+              ),
+              onSelected: (_) => onClearSelection(),
+            );
+          }
+
+          final category = categories[index - 1];
           final isSelected = selectedCategory == category;
           return ChoiceChip(
             label: Text(category),
@@ -31,6 +53,9 @@ class ExploreCategoryChipsList extends StatelessWidget {
             selectedColor: const Color(0xFFFBE2AC),
             backgroundColor: const Color(0xFFEBEAE4),
             side: BorderSide.none,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9999),
+            ),
             labelStyle: TextStyle(
               fontFamily: 'Inter',
               fontSize: 13,

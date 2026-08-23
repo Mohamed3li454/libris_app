@@ -7,7 +7,10 @@ class BookResponseModel {
     List rawList = json['works'] ?? json['docs'] ?? [];
     return BookResponseModel(
       books: rawList
-          .map((item) => BookModel.fromJson(Map<String, dynamic>.from(item as Map)))
+          .map(
+            (item) =>
+                BookModel.fromJson(Map<String, dynamic>.from(item as Map)),
+          )
           .toList(),
     );
   }
@@ -19,6 +22,7 @@ class BookModel {
   final String authorName;
   final String coverUrl;
   final int? firstPublishYear;
+  final String? collection;
 
   BookModel({
     required this.key,
@@ -26,6 +30,7 @@ class BookModel {
     required this.authorName,
     required this.coverUrl,
     this.firstPublishYear,
+    this.collection,
   });
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +60,7 @@ class BookModel {
       authorName: author,
       coverUrl: coverImage,
       firstPublishYear: json['first_publish_year'],
+      collection: json['collection'] is String ? json['collection'] : null,
     );
   }
 
@@ -65,6 +71,7 @@ class BookModel {
       'author_name': [authorName],
       'cover_url': coverUrl,
       'first_publish_year': firstPublishYear,
+      'collection': collection,
     };
   }
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
 
 class EmptyLibraryView extends StatelessWidget {
-  const EmptyLibraryView({super.key});
+  final String? message;
+
+  const EmptyLibraryView({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,7 @@ class EmptyLibraryView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Saved books and reading lists will show up here.',
+            message ?? 'Saved books and reading lists will show up here.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: Colors.grey[600]),
           ),

@@ -13,14 +13,22 @@ class LibraryLoading extends LibraryState {}
 
 class LibrarySuccess extends LibraryState {
   final List<BookModel> books;
+  final String selectedCollection;
 
-  const LibrarySuccess(this.books);
+  const LibrarySuccess({required this.books, required this.selectedCollection});
 
   @override
-  List<Object?> get props => [books];
+  List<Object?> get props => [books, selectedCollection];
 }
 
-class LibraryEmpty extends LibraryState {}
+class LibraryEmpty extends LibraryState {
+  final String selectedCollection;
+
+  const LibraryEmpty(this.selectedCollection);
+
+  @override
+  List<Object?> get props => [selectedCollection];
+}
 
 class LibraryFailure extends LibraryState {
   final String errMessage;

@@ -9,8 +9,44 @@ import 'package:libris_app/features/home/data/repos/home_repo.dart';
 
 class HomeRepoImpl implements HomeRepo {
   final ApiService apiService;
+  static const Duration _cacheTtl = Duration(hours: 8);
 
   HomeRepoImpl({required this.apiService});
+
+  bool _isCacheValid(int? timestamp) {
+    if (timestamp == null) return false;
+    final cachedAt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return DateTime.now().difference(cachedAt) <= _cacheTtl;
+  }
+
+  Future<void> _writeCachedList(Box box, String key, List rawList) async {
+    await box.put(key, {
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'items': rawList,
+    });
+  }
+
+  List<BookModel> _readCachedBooks(Box box, String key) {
+    if (!box.containsKey(key)) return [];
+    final cached = box.get(key);
+
+    List<dynamic>? rawItems;
+    if (cached is Map) {
+      final timestamp = cached['timestamp'] as int?;
+      if (!_isCacheValid(timestamp)) return [];
+      final items = cached['items'];
+      if (items is List) rawItems = items;
+    } else if (cached is List) {
+      // Backward compatibility with old cache shape.
+      rawItems = cached;
+    }
+
+    if (rawItems == null || rawItems.isEmpty) return [];
+
+    return rawItems
+        .map((item) => BookModel.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
 
   @override
   Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks() async {
@@ -21,23 +57,16 @@ class HomeRepoImpl implements HomeRepo {
       );
       final bookResponse = BookResponseModel.fromJson(data);
       List rawList = data['works'] ?? data['docs'] ?? [];
-      await box.put('featured_list', rawList);
+      await _writeCachedList(box, 'featured_list', rawList);
       return right(bookResponse.books);
     } catch (e) {
-      if (box.containsKey('featured_list')) {
-        try {
-          List cachedRawList = box.get('featured_list') as List;
-          List<BookModel> cachedBooks =
-              cachedRawList
-                  .map(
-                    (item) =>
-                        BookModel.fromJson(Map<String, dynamic>.from(item)),
-                  )
-                  .toList();
-          if (cachedBooks.isNotEmpty) {
-            return right(cachedBooks);
-          }
-        } catch (_) {}
+      try {
+        final cachedBooks = _readCachedBooks(box, 'featured_list');
+        if (cachedBooks.isNotEmpty) {
+          return right(cachedBooks);
+        }
+      } catch (_) {
+        // Fallback to network failure below when cache parse fails.
       }
 
       if (e is Failure) return left(e);
@@ -54,10 +83,9 @@ class HomeRepoImpl implements HomeRepo {
     required String category,
   }) async {
     var box = Hive.box(kFilterBox);
-    String subject =
-        (category.isEmpty || category.toLowerCase() == 'all')
-            ? 'general'
-            : category.toLowerCase();
+    String subject = (category.isEmpty || category.toLowerCase() == 'all')
+        ? 'general'
+        : category.toLowerCase();
 
     try {
       var data = await apiService.getData(
@@ -65,23 +93,16 @@ class HomeRepoImpl implements HomeRepo {
       );
       final bookResponse = BookResponseModel.fromJson(data);
       List rawList = data['works'] ?? data['docs'] ?? [];
-      await box.put(subject, rawList);
+      await _writeCachedList(box, subject, rawList);
       return right(bookResponse.books);
     } catch (e) {
-      if (box.containsKey(subject)) {
-        try {
-          List cachedRawList = box.get(subject) as List;
-          List<BookModel> cachedBooks =
-              cachedRawList
-                  .map(
-                    (item) =>
-                        BookModel.fromJson(Map<String, dynamic>.from(item)),
-                  )
-                  .toList();
-          if (cachedBooks.isNotEmpty) {
-            return right(cachedBooks);
-          }
-        } catch (_) {}
+      try {
+        final cachedBooks = _readCachedBooks(box, subject);
+        if (cachedBooks.isNotEmpty) {
+          return right(cachedBooks);
+        }
+      } catch (_) {
+        // Fallback to network failure below when cache parse fails.
       }
 
       if (e is Failure) return left(e);

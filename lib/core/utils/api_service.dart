@@ -25,13 +25,26 @@ class ApiService {
     return await getData(endPoint: "trending/weekly.json?limit=$limit");
   }
 
-  Future<Map<String, dynamic>> searchBooks(String query) async {
+  Future<Map<String, dynamic>> searchBooks(
+    String query, {
+    int page = 1,
+    int limit = 20,
+  }) async {
     final encodedQuery = Uri.encodeComponent(query);
-    return await getData(endPoint: "search.json?q=$encodedQuery&limit=50");
+    return await getData(
+      endPoint: "search.json?q=$encodedQuery&limit=$limit&page=$page",
+    );
   }
 
-  Future<Map<String, dynamic>> fetchBooksBySubject(String subject) async {
+  Future<Map<String, dynamic>> fetchBooksBySubject(
+    String subject, {
+    int page = 1,
+    int limit = 20,
+  }) async {
     final cleanSubject = subject.toLowerCase().replaceAll(' ', '_');
-    return await getData(endPoint: "subjects/$cleanSubject.json?limit=50");
+    final int offset = (page - 1) * limit;
+    return await getData(
+      endPoint: "subjects/$cleanSubject.json?limit=$limit&offset=$offset",
+    );
   }
 }

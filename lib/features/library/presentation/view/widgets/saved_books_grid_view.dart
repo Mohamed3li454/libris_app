@@ -5,8 +5,13 @@ import 'package:libris_app/features/library/presentation/view/widgets/saved_book
 
 class SavedBooksGridView extends StatelessWidget {
   final List<BookModel> books;
+  final void Function(String key, String collection)? onMoveToCollection;
 
-  const SavedBooksGridView({super.key, required this.books});
+  const SavedBooksGridView({
+    super.key,
+    required this.books,
+    this.onMoveToCollection,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,13 @@ class SavedBooksGridView extends StatelessWidget {
       mainAxisSpacing: 14,
       itemCount: books.length,
       itemBuilder: (context, index) {
-        return SavedBookCard(bookModel: books[index]);
+        final book = books[index];
+        return SavedBookCard(
+          bookModel: book,
+          onCollectionSelected: (collection) {
+            onMoveToCollection?.call(book.key, collection);
+          },
+        );
       },
     );
   }

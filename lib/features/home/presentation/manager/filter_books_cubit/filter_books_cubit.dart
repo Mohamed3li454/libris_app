@@ -1,8 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/core/utils/api_service.dart';
+import 'package:libris_app/core/utils/dio_factory.dart';
 import 'package:libris_app/features/home/data/repos/home_repo.dart';
 import 'package:libris_app/features/home/data/repos/home_repo_impl.dart';
 
@@ -13,8 +13,9 @@ class FilterBooksCubit extends Cubit<FilterBooksState> {
   String currentCategory = 'All';
 
   FilterBooksCubit({HomeRepo? homeRepo})
-      : homeRepo = homeRepo ?? HomeRepoImpl(apiService: ApiService(Dio())),
-        super(FilterBooksInitial());
+    : homeRepo =
+          homeRepo ?? HomeRepoImpl(apiService: ApiService(DioFactory.dio)),
+      super(FilterBooksInitial());
 
   Future<void> fetchFilterBooks({required String category}) async {
     currentCategory = category;

@@ -7,8 +7,13 @@ import 'package:libris_app/features/library/presentation/manager/library_cubit/l
 
 class SavedBookCard extends StatelessWidget {
   final BookModel bookModel;
+  final ValueChanged<String>? onCollectionSelected;
 
-  const SavedBookCard({super.key, required this.bookModel});
+  const SavedBookCard({
+    super.key,
+    required this.bookModel,
+    this.onCollectionSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,25 +70,84 @@ class SavedBookCard extends StatelessWidget {
                   ),
                   Positioned(
                     top: 6,
-                    right: 6,
-                    child: GestureDetector(
-                      onTap: () {
-                        BlocProvider.of<LibraryCubit>(
-                          context,
-                        ).removeFavoriteBook(bookModel.key);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.55),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.bookmark_remove_rounded,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        bookModel.collection ?? 'Favorites',
+                        style: const TextStyle(
                           color: Colors.white,
-                          size: 16,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Row(
+                      children: [
+                        PopupMenuButton<String>(
+                          tooltip: 'Move to collection',
+                          onSelected: (value) {
+                            onCollectionSelected?.call(value);
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: 'Favorites',
+                              child: Text('Favorites'),
+                            ),
+                            PopupMenuItem(
+                              value: 'Want to Read',
+                              child: Text('Want to Read'),
+                            ),
+                            PopupMenuItem(
+                              value: 'Finished',
+                              child: Text('Finished'),
+                            ),
+                          ],
+                          child: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.drive_file_move_outline,
+                              color: Colors.white,
+                              size: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 1),
+                        GestureDetector(
+                          onTap: () {
+                            BlocProvider.of<LibraryCubit>(
+                              context,
+                            ).removeFavoriteBook(bookModel.key);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.bookmark_remove_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
