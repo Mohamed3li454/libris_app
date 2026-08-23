@@ -22,46 +22,44 @@ class SavedBookCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
               child: Stack(
                 children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(
+                      aspectRatio: 3 / 4,
                       child: CachedNetworkImage(
                         imageUrl: bookModel.coverUrl,
-                        fit: BoxFit.cover,
-                        placeholder:
-                            (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                        errorWidget:
-                            (context, url, error) => Container(
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.book,
-                                color: Colors.grey,
-                              ),
-                            ),
+                        fit: BoxFit.fill,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: const Color(0xFFECE3CF),
+                          child: const Icon(
+                            Icons.menu_book_rounded,
+                            color: Colors.grey,
+                            size: 36,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -75,15 +73,15 @@ class SavedBookCard extends StatelessWidget {
                         ).removeFavoriteBook(bookModel.key);
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
+                          color: Colors.black.withValues(alpha: 0.55),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.bookmark_remove_rounded,
                           color: Colors.white,
-                          size: 18,
+                          size: 16,
                         ),
                       ),
                     ),
@@ -92,18 +90,20 @@ class SavedBookCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     bookModel.title,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF2C2416),
+                      height: 1.2,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -111,9 +111,13 @@ class SavedBookCard extends StatelessWidget {
                     bookModel.authorName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Icon(
@@ -121,14 +125,14 @@ class SavedBookCard extends StatelessWidget {
                         size: 12,
                         color: Colors.grey[600],
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 5),
                       Text(
                         bookModel.firstPublishYear != null
                             ? '${bookModel.firstPublishYear}'
                             : 'N/A',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           color: Colors.grey[700],
                         ),
                       ),
