@@ -35,6 +35,10 @@ class MainNavigationViewState extends State<MainNavigationView> {
     super.dispose();
   }
 
+  void navigateToExplore() {
+    _onTabSelected(1);
+  }
+
   void navigateToExploreWithQuery(String query) {
     setState(() {
       _exploreSearchQuery = query;
@@ -64,6 +68,7 @@ class MainNavigationViewState extends State<MainNavigationView> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;

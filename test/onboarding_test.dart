@@ -23,7 +23,9 @@ void main() {
   });
 
   group('OnboardingView Widget Tests', () {
-    testWidgets('renders onboarding slides, skip button and page indicator', (WidgetTester tester) async {
+    testWidgets('renders onboarding slides, skip button and page indicator', (
+      WidgetTester tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
 
       await tester.pumpWidget(
@@ -32,22 +34,21 @@ void main() {
         ),
       );
 
-      // Verify initial slide content
       expect(find.text('Discover Great Books'), findsOneWidget);
       expect(find.text('Skip'), findsOneWidget);
       expect(find.text('Next'), findsOneWidget);
       expect(find.text('DISCOVER'), findsOneWidget);
 
-      // Swipe to next slide
       await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.text('Read & Download'), findsOneWidget);
+      expect(find.text('Open Book Pages'), findsOneWidget);
       expect(find.text('READ'), findsOneWidget);
 
-      // Swipe to final slide
       await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Build Your Library'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);

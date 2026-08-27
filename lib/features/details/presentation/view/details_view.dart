@@ -15,8 +15,15 @@ class DetailsView extends StatelessWidget {
     return BlocProvider(
       create: (context) {
         final cubit = BookDetailsCubit();
-        if (bookModel != null && bookModel!.key.isNotEmpty) {
-          cubit.fetchBookDetails(workKey: bookModel!.key);
+        if (bookModel != null &&
+            (bookModel!.key.isNotEmpty ||
+                (bookModel!.iaId != null && bookModel!.iaId!.isNotEmpty))) {
+          cubit.fetchBookDetails(
+            workKey: bookModel!.key.isNotEmpty
+                ? bookModel!.key
+                : '/ia/${bookModel!.iaId}',
+            book: bookModel,
+          );
         }
         return cubit;
       },

@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libris_app/core/di/service_locator.dart';
 import 'package:libris_app/core/models/book_model.dart';
-import 'package:libris_app/core/utils/api_service.dart';
-import 'package:libris_app/core/utils/dio_factory.dart';
 import 'package:libris_app/features/explore/data/repos/search_repo.dart';
-import 'package:libris_app/features/explore/data/repos/search_repo_impl.dart';
 
 part 'explore_state.dart';
 
@@ -23,8 +21,7 @@ class ExploreCubit extends Cubit<ExploreState> {
   ExploreMode _mode = ExploreMode.none;
 
   ExploreCubit({SearchRepo? searchRepo})
-    : searchRepo =
-          searchRepo ?? SearchRepoImpl(apiService: ApiService(DioFactory.dio)),
+    : searchRepo = searchRepo ?? ServiceLocator.searchRepo,
       super(ExploreInitial());
 
   void searchBooksDebounced(String query) {
@@ -204,7 +201,16 @@ class ExploreCubit extends Cubit<ExploreState> {
       (failure) {
         _isLoadingMore = false;
         if (!isClosed) {
-          emit(ExploreFailure(failure.errMessage));
+          emit(
+            ExploreSuccess(
+              books: _books,
+              query: current.query,
+              activeCategory: current.activeCategory,
+              hasMore: _hasMore,
+              isLoadingMore: false,
+              loadMoreError: failure.errMessage,
+            ),
+          );
         }
       },
       (newBooks) {

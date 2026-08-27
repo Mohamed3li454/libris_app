@@ -17,6 +17,7 @@ class ExploreSuccess extends ExploreState {
   final String? activeCategory;
   final bool hasMore;
   final bool isLoadingMore;
+  final String? loadMoreError;
 
   const ExploreSuccess({
     required this.books,
@@ -24,6 +25,7 @@ class ExploreSuccess extends ExploreState {
     this.activeCategory,
     this.hasMore = false,
     this.isLoadingMore = false,
+    this.loadMoreError,
   });
 
   @override
@@ -33,6 +35,7 @@ class ExploreSuccess extends ExploreState {
     activeCategory,
     hasMore,
     isLoadingMore,
+    loadMoreError,
   ];
 }
 

@@ -39,9 +39,9 @@ A modern, high-performance Flutter application built for seamless book discovery
 
 - **🔍 Book Exploration & Search**: Real-time multi-criteria search by title, author, or genre. Built with 400ms input debouncing, minimum 3-character query validation, and paginated results (20 items per page) with infinite scroll and a "Load more" fallback.
 - **🧭 Smart Explore Welcome Screen**: Contextual discovery hub showing recent search history (persisted via `SharedPreferences`), trending topic suggestions (`#` tags), a 10-genre browse grid (`ExploreGenresGrid`), and author recommendations pulled from your saved library.
-- **📚 Comprehensive Book Details**: Deep-dive into metadata including detailed overview summaries, author credits, publication year, average ratings, and instant action controls (*Read Now* / *Download PDF* via `url_launcher`).
-- **❤️ Personal Library & Collections**: Organize saved books into custom reading categories (*Favorites*, *Want to Read*, *Finished*) with live filter chips and seamless collection switching.
-- **💾 Library Backup & Restore**: One-tap export to generate formatted JSON backups directly to the clipboard, alongside an import modal to restore or merge saved books into offline Hive storage.
+- **📚 Comprehensive Book Details**: Deep-dive into metadata including summaries, author credits, publication year, ratings, similar titles, and Open Library links (`url_launcher`). PDF download appears only when a real file is available.
+- **❤️ Personal Library & Collections**: Organize saved books into *Want to Read*, *Reading*, *Finished*, and *Favorites*, with sort options, collection counts, and reading progress.
+- **💾 Library Backup & Restore**: Export a JSON backup via the share sheet, and import a backup file to restore or merge saved books.
 - **🧱 Staggered Masonry Layout**: Saved titles are rendered in an adaptive, 2-column **Masonry grid** layout (`flutter_staggered_grid_view`) with dynamic cover aspect ratios.
 - **🏠 Home-to-Explore Deep Linking**: "See All" on the featured carousel navigates directly to the Explore tab and loads trending books via `MainNavigationView.navigateToExploreWithQuery`.
 - **🚀 Interactive Onboarding Walkthrough**: Engaging multi-screen onboarding guide introducing app features with custom vector Lottie animations (`search_list.json`, `read_icon.json`, `save.json`) and `smooth_page_indicator`, backed by `SharedPreferences` for persistent launch state tracking.
@@ -68,7 +68,7 @@ A modern, high-performance Flutter application built for seamless book discovery
 | **Animations** | `lottie` | Rich vector JSON animations for interactive onboarding |
 | **UI Components** | `smooth_page_indicator`, `shimmer` | Page indicators and visual shimmer loading feedback |
 | **External Actions** | `url_launcher` | Opening reader URLs and external PDF download links |
-| **Design System** | Custom Warm Ivory Theme | Custom palette, `google_fonts`, `flutter_screenutil_plus` |
+| **Design System** | Custom Warm Ivory Theme | Light/dark themes, `google_fonts` |
 | **Image Caching** | `cached_network_image` | Efficient image caching with placeholder shimmer support |
 
 ---
@@ -189,26 +189,20 @@ Ensure you have the following installed on your machine:
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/Mohamed3li454/libris_app.git
-   cd libris_app
-   ```
+    cd libris_app
+    ```
 
-2. **Configure Environment Variables**:
-   Create a `.env` file in the root directory (or copy from `.env.example`):
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Install Dependencies**:
+2. **Install Dependencies**:
    ```bash
    flutter pub get
    ```
 
-4. **Run the Application**:
+3. **Run the Application**:
    ```bash
    flutter run
    ```
 
-5. **Run Tests** (optional):
+4. **Run Tests** (optional):
    ```bash
    flutter test
    ```

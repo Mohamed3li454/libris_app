@@ -3,6 +3,7 @@ import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/features/details/presentation/view/details_view.dart';
 import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
 import 'package:libris_app/features/onboarding/presentation/view/onboarding_view.dart';
+import 'package:libris_app/features/settings/presentation/view/settings_view.dart';
 import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
 
 final router = GoRouter(
@@ -27,6 +28,9 @@ final router = GoRouter(
         return DetailsView(bookModel: bookModel);
       },
     ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsView(),
+    ),
   ],
 );
-

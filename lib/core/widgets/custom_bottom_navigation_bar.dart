@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
 
 class NavItemData {
   final IconData icon;
@@ -12,21 +12,21 @@ class NavItemData {
 class CustomBottomNavigationBar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int>? onItemTapped;
-  final Color backgroundColor;
-  final Color activePillColor;
-  final Color activeColor;
-  final Color inactiveColor;
-  final Color topBorderColor;
+  final Color? backgroundColor;
+  final Color? activePillColor;
+  final Color? activeColor;
+  final Color? inactiveColor;
+  final Color? topBorderColor;
 
   const CustomBottomNavigationBar({
     super.key,
     this.selectedIndex = 0,
     this.onItemTapped,
-    this.backgroundColor = AppColors.background,
-    this.activePillColor = const Color(0xFFE8DFC8),
-    this.activeColor = AppColors.primary,
-    this.inactiveColor = AppColors.secondary,
-    this.topBorderColor = const Color(0xFFE5DDD0),
+    this.backgroundColor,
+    this.activePillColor,
+    this.activeColor,
+    this.inactiveColor,
+    this.topBorderColor,
   });
 
   @override
@@ -79,11 +79,18 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor =
+        widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor;
+    final activePillColor = widget.activePillColor ?? context.pillColor;
+    final activeColor = widget.activeColor ?? context.colors.primary;
+    final inactiveColor = widget.inactiveColor ?? context.mutedColor;
+    final topBorderColor = widget.topBorderColor ?? context.colors.outline;
+
     return Container(
       decoration: BoxDecoration(
-        color: widget.backgroundColor,
+        color: backgroundColor,
         border: Border(
-          top: BorderSide(color: widget.topBorderColor, width: 1.0),
+          top: BorderSide(color: topBorderColor, width: 1.0),
         ),
       ),
       child: SafeArea(
@@ -111,7 +118,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                       ),
                       decoration: BoxDecoration(
                         color: isActive
-                            ? widget.activePillColor
+                            ? activePillColor
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -133,9 +140,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                                   ? (item.activeIcon ?? item.icon)
                                   : item.icon,
                               key: ValueKey<String>('${item.label}_$isActive'),
-                              color: isActive
-                                  ? widget.activeColor
-                                  : widget.inactiveColor,
+                              color: isActive ? activeColor : inactiveColor,
                               size: 22,
                             ),
                           ),
@@ -147,9 +152,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
                               fontWeight: isActive
                                   ? FontWeight.bold
                                   : FontWeight.w500,
-                              color: isActive
-                                  ? widget.activeColor
-                                  : widget.inactiveColor,
+                              color: isActive ? activeColor : inactiveColor,
                               letterSpacing: 0.1,
                             ),
                             child: Text(item.label),

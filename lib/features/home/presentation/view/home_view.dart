@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:libris_app/features/home/presentation/manager/featured%20books%20cubit/featured_books_cubit.dart';
+import 'package:libris_app/features/home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/manager/filter_books_cubit/filter_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/home_view_body.dart';
 

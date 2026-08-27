@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/features/details/presentation/manager/book_details_cubit/book_details_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 
 class BookStatsCard extends StatelessWidget {
   final int? publishYear;
+  final String? language;
 
-  const BookStatsCard({super.key, this.publishYear});
+  const BookStatsCard({super.key, this.publishYear, this.language});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class BookStatsCard extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.07),
+              color: context.colors.primary.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Shimmer.fromColors(
@@ -44,24 +45,28 @@ class BookStatsCard extends StatelessWidget {
 
         double rating = 0.0;
         int ratingCount = 0;
+        String languageText = language ?? 'EN';
         if (state is BookDetailsSuccess) {
           rating = state.bookDetail.averageRating;
           ratingCount = state.bookDetail.ratingCount;
+          final detailLanguage = state.bookDetail.language;
+          if (detailLanguage != null && detailLanguage.isNotEmpty) {
+            languageText = detailLanguage;
+          }
         }
 
         String ratingText = rating > 0 ? rating.toStringAsFixed(1) : "N/A";
         String yearText = publishYear != null ? "$publishYear" : "N/A";
-        String ratingsCountText =
-            ratingCount > 0 ? "$ratingCount" : "OpenLib";
+        String ratingsCountText = ratingCount > 0 ? "$ratingCount" : "OpenLib";
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.07),
+            color: context.colors.primary.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: context.colors.primary.withValues(alpha: 0.12),
               width: 1,
             ),
           ),
@@ -71,6 +76,7 @@ class BookStatsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildStatItem(
+                    context,
                     valueWidget: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -82,10 +88,10 @@ class BookStatsCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           ratingText,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2416),
+                            color: context.titleColor,
                           ),
                         ),
                       ],
@@ -93,23 +99,26 @@ class BookStatsCard extends StatelessWidget {
                     label: 'RATING',
                   ),
                 ),
-                _buildDivider(),
+                _buildDivider(context),
                 Expanded(
                   child: _buildStatItem(
+                    context,
                     value: yearText,
                     label: 'YEAR',
                   ),
                 ),
-                _buildDivider(),
+                _buildDivider(context),
                 Expanded(
                   child: _buildStatItem(
-                    value: 'EN',
+                    context,
+                    value: languageText,
                     label: 'LANG',
                   ),
                 ),
-                _buildDivider(),
+                _buildDivider(context),
                 Expanded(
                   child: _buildStatItem(
+                    context,
                     value: ratingsCountText,
                     label: 'VOTES',
                   ),
@@ -122,15 +131,16 @@ class BookStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(BuildContext context) {
     return Container(
       width: 1,
       height: 28,
-      color: AppColors.primary.withValues(alpha: 0.15),
+      color: context.colors.primary.withValues(alpha: 0.15),
     );
   }
 
-  Widget _buildStatItem({
+  Widget _buildStatItem(
+    BuildContext context, {
     String? value,
     Widget? valueWidget,
     required String label,
@@ -142,19 +152,19 @@ class BookStatsCard extends StatelessWidget {
         valueWidget ??
             Text(
               value ?? '',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C2416),
+                color: context.titleColor,
               ),
             ),
         const SizedBox(height: 4),
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: AppColors.muted,
+            color: context.mutedColor,
             letterSpacing: 0.8,
           ),
         ),

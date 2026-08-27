@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 
 class SavedBookCard extends StatelessWidget {
@@ -15,22 +16,76 @@ class SavedBookCard extends StatelessWidget {
     this.onCollectionSelected,
   });
 
+  Future<void> _editProgress(BuildContext context) async {
+    var value = (bookModel.progress ?? 0).clamp(0, 100).toDouble();
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Reading progress'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${value.round()}%'),
+                  Slider(
+                    value: value,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    label: '${value.round()}%',
+                    onChanged: (next) {
+                      setState(() {
+                        value = next;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, value.round()),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && context.mounted) {
+      await context.read<LibraryCubit>().updateBookProgress(
+        bookModel.key,
+        result,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final progress = (bookModel.progress ?? 0).clamp(0, 100);
+    final isReading = (bookModel.collection ?? 'Favorites') == 'Reading';
+
     return GestureDetector(
       onTap: () async {
         await GoRouter.of(context).push('/details', extra: bookModel);
         if (context.mounted) {
-          BlocProvider.of<LibraryCubit>(context).fetchFavoriteBooks();
+          context.read<LibraryCubit>().fetchFavoriteBooks();
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withValues(alpha: context.isDark ? 0.35 : 0.08),
               blurRadius: 14,
               offset: const Offset(0, 6),
             ),
@@ -48,24 +103,35 @@ class SavedBookCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     child: AspectRatio(
                       aspectRatio: 3 / 4,
-                      child: CachedNetworkImage(
-                        imageUrl: bookModel.coverUrl,
-                        fit: BoxFit.fill,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: const Color(0xFFECE3CF),
-                          child: const Icon(
-                            Icons.menu_book_rounded,
-                            color: Colors.grey,
-                            size: 36,
-                          ),
-                        ),
-                      ),
+                      child: bookModel.coverUrl.isEmpty
+                          ? Container(
+                              color: context.pillColor,
+                              child: Icon(
+                                Icons.menu_book_rounded,
+                                color: context.mutedColor,
+                                size: 36,
+                              ),
+                            )
+                          : CachedNetworkImage(
+                              imageUrl: bookModel.coverUrl,
+                              fit: BoxFit.fill,
+                              placeholder: (context, url) => Container(
+                                color: context.pillColor,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: context.pillColor,
+                                child: Icon(
+                                  Icons.menu_book_rounded,
+                                  color: context.mutedColor,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                   Positioned(
@@ -100,19 +166,13 @@ class SavedBookCard extends StatelessWidget {
                           onSelected: (value) {
                             onCollectionSelected?.call(value);
                           },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                              value: 'Favorites',
-                              child: Text('Favorites'),
-                            ),
-                            PopupMenuItem(
-                              value: 'Want to Read',
-                              child: Text('Want to Read'),
-                            ),
-                            PopupMenuItem(
-                              value: 'Finished',
-                              child: Text('Finished'),
-                            ),
+                          itemBuilder: (context) => [
+                            for (final collection
+                                in LibraryCubit.movableCollections)
+                              PopupMenuItem(
+                                value: collection,
+                                child: Text(collection),
+                              ),
                           ],
                           child: Container(
                             padding: const EdgeInsets.all(7),
@@ -130,9 +190,9 @@ class SavedBookCard extends StatelessWidget {
                         const SizedBox(width: 1),
                         GestureDetector(
                           onTap: () {
-                            BlocProvider.of<LibraryCubit>(
-                              context,
-                            ).removeFavoriteBook(bookModel.key);
+                            context.read<LibraryCubit>().removeFavoriteBook(
+                              bookModel.key,
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(7),
@@ -163,10 +223,10 @@ class SavedBookCard extends StatelessWidget {
                     bookModel.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF2C2416),
+                      color: context.titleColor,
                       height: 1.2,
                     ),
                   ),
@@ -177,7 +237,7 @@ class SavedBookCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[700],
+                      color: context.mutedColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -187,7 +247,7 @@ class SavedBookCard extends StatelessWidget {
                       Icon(
                         Icons.calendar_today_rounded,
                         size: 12,
-                        color: Colors.grey[600],
+                        color: context.mutedColor,
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -197,11 +257,36 @@ class SavedBookCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+                          color: context.mutedColor,
                         ),
                       ),
                     ],
                   ),
+                  if (isReading) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => _editProgress(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LinearProgressIndicator(
+                            value: progress / 100,
+                            minHeight: 6,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$progress% · tap to update',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -57,11 +57,11 @@ class HomeRepoImpl implements HomeRepo {
       );
       final bookResponse = BookResponseModel.fromJson(data);
       List rawList = data['works'] ?? data['docs'] ?? [];
-      await _writeCachedList(box, 'featured_list', rawList);
+      await _writeCachedList(box, 'featured_list_eng', rawList);
       return right(bookResponse.books);
     } catch (e) {
       try {
-        final cachedBooks = _readCachedBooks(box, 'featured_list');
+        final cachedBooks = _readCachedBooks(box, 'featured_list_eng');
         if (cachedBooks.isNotEmpty) {
           return right(cachedBooks);
         }
@@ -89,15 +89,15 @@ class HomeRepoImpl implements HomeRepo {
 
     try {
       var data = await apiService.getData(
-        endPoint: "search.json?q=$subject&limit=50",
+        endPoint: "search.json?q=$subject&language=eng&limit=50",
       );
       final bookResponse = BookResponseModel.fromJson(data);
       List rawList = data['works'] ?? data['docs'] ?? [];
-      await _writeCachedList(box, subject, rawList);
+      await _writeCachedList(box, '${subject}_eng', rawList);
       return right(bookResponse.books);
     } catch (e) {
       try {
-        final cachedBooks = _readCachedBooks(box, subject);
+        final cachedBooks = _readCachedBooks(box, '${subject}_eng');
         if (cachedBooks.isNotEmpty) {
           return right(cachedBooks);
         }
@@ -112,5 +112,11 @@ class HomeRepoImpl implements HomeRepo {
       }
       return left(ServerFailure('Failed to load books. Please try again.'));
     }
+  }
+
+  @override
+  Future<void> clearCache() async {
+    await Hive.box(kFeaturedBox).clear();
+    await Hive.box(kFilterBox).clear();
   }
 }

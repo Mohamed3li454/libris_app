@@ -1,11 +1,11 @@
 {
-    "name": "libris_app",
-    "short_name": "libris_app",
+    "name": "Libris",
+    "short_name": "Libris",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F0EADE",
+    "theme_color": "#765A1F",
+    "description": "Discover, explore, and manage your personal library.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

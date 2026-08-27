@@ -18,7 +18,7 @@ class FeaturedBooksSection extends StatelessWidget {
             children: [
               Text(
                 "Featured for you",
-                style: Styles.intelStyle.copyWith(fontSize: 22),
+                style: Styles.interStyle.copyWith(fontSize: 22),
               ),
               TextButton(
                 onPressed: () {

@@ -27,15 +27,15 @@ class _OnboardingViewState extends State<OnboardingView> {
       badgeText: "DISCOVER",
     ),
     OnboardingModel(
-      title: "Read & Download",
+      title: "Open Book Pages",
       subtitle:
-          "Access book details, read summaries, or download PDFs easily.",
+          "Read details and open titles on Open Library in your browser.",
       lottiePath: "assets/read_icon.json",
       badgeText: "READ",
     ),
     OnboardingModel(
       title: "Build Your Library",
-      subtitle: "Save your favorite books to read anytime offline.",
+      subtitle: "Save books to your personal library on this device.",
       lottiePath: "assets/save.json",
       badgeText: "LIBRARY",
     ),
@@ -70,7 +70,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     final isLastPage = _currentPage == _slides.length - 1;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

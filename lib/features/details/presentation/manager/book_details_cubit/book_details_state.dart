@@ -13,11 +13,17 @@ class BookDetailsLoading extends BookDetailsState {}
 
 class BookDetailsSuccess extends BookDetailsState {
   final BookDetailModel bookDetail;
+  final List<BookModel> similarBooks;
+  final bool isSimilarLoading;
 
-  const BookDetailsSuccess(this.bookDetail);
+  const BookDetailsSuccess({
+    required this.bookDetail,
+    this.similarBooks = const [],
+    this.isSimilarLoading = false,
+  });
 
   @override
-  List<Object?> get props => [bookDetail];
+  List<Object?> get props => [bookDetail, similarBooks, isSimilarLoading];
 }
 
 class BookDetailsFailure extends BookDetailsState {

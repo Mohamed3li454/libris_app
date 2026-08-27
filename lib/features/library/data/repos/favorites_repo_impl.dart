@@ -39,6 +39,9 @@ class FavoritesRepoImpl implements FavoritesRepo {
     try {
       final payload = Map<String, dynamic>.from(book.toJson());
       payload['collection'] = payload['collection'] ?? defaultCollection;
+      payload['added_at'] =
+          payload['added_at'] ?? DateTime.now().millisecondsSinceEpoch;
+      payload['progress'] = payload['progress'] ?? 0;
       await _box.put(book.key, payload);
     } catch (e) {
       debugPrint('Error saving favorite book: $e');
@@ -86,6 +89,24 @@ class FavoritesRepoImpl implements FavoritesRepo {
       }
     } catch (e) {
       debugPrint('Error updating collection: $e');
+    }
+  }
+
+  @override
+  Future<void> updateBookProgress(String key, int progress) async {
+    try {
+      final item = _box.get(key);
+      if (item is Map) {
+        final payload = Map<String, dynamic>.from(item);
+        final clamped = progress.clamp(0, 100);
+        payload['progress'] = clamped;
+        if (clamped >= 100) {
+          payload['collection'] = 'Finished';
+        }
+        await _box.put(key, payload);
+      }
+    } catch (e) {
+      debugPrint('Error updating progress: $e');
     }
   }
 

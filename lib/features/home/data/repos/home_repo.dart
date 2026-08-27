@@ -7,4 +7,5 @@ abstract class HomeRepo {
   Future<Either<Failure, List<BookModel>>> fetchFilterBooks({
     required String category,
   });
+  Future<void> clearCache();
 }

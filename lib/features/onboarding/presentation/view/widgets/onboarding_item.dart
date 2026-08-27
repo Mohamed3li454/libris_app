@@ -13,13 +13,19 @@ class OnboardingItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final artSize = constraints.maxHeight < 480 ? 180.0 : 260.0;
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
           // Illustration / Graphic Container
           Container(
-            width: 260,
-            height: 260,
+            width: artSize,
+            height: artSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.08),
@@ -37,8 +43,8 @@ class OnboardingItem extends StatelessWidget {
             ),
             child: Center(
               child: Container(
-                width: 190,
-                height: 190,
+                width: artSize * 0.73,
+                height: artSize * 0.73,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -53,15 +59,15 @@ class OnboardingItem extends StatelessWidget {
                 child: Center(
                   child: Lottie.asset(
                     model.lottiePath,
-                    width: 180,
-                    height: 180,
+                    width: artSize * 0.7,
+                    height: artSize * 0.7,
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: artSize < 220 ? 20 : 40),
 
           // Badge tag
           Container(
@@ -106,7 +112,11 @@ class OnboardingItem extends StatelessWidget {
               height: 1.5,
             ),
           ),
-        ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/services/search_history_service.dart';
 import 'package:libris_app/core/utils/styles.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
-import 'package:libris_app/features/library/data/repos/favorites_repo_impl.dart';
+import 'package:libris_app/core/di/service_locator.dart';
 import 'package:libris_app/features/explore/presentation/manager/explore_cubit/explore_cubit.dart';
 import 'package:libris_app/features/explore/presentation/view/widgets/custom_search_text_field.dart';
 import 'package:libris_app/features/explore/presentation/view/widgets/explore_category_chips_list.dart';
@@ -81,7 +81,7 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
 
   Future<void> _loadQuickSuggestions() async {
     final recent = await SearchHistoryService.getRecentSearches();
-    final favoriteBooks = FavoritesRepoImpl().getFavoriteBooks();
+    final favoriteBooks = ServiceLocator.favoritesRepo.getFavoriteBooks();
     final authorSet = <String>{};
     for (final book in favoriteBooks) {
       final author = book.authorName.trim();
@@ -185,7 +185,7 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
             const SizedBox(height: 20),
             Text(
               'Explore',
-              style: Styles.intelStyle.copyWith(
+              style: Styles.interStyle.copyWith(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
                 color: AppColors.primary,
@@ -223,6 +223,14 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
                       state.query!.isNotEmpty &&
                       state.query != 'Featured Books') {
                     _storeRecentQuery(state.query!);
+                  }
+                  if (state is ExploreSuccess &&
+                      state.loadMoreError != null &&
+                      state.loadMoreError!.isNotEmpty) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.loadMoreError!)),
+                    );
                   }
                 },
                 builder: (context, state) {
@@ -262,7 +270,7 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
                                             state.query!.isNotEmpty
                                         ? 'Results for "${state.query}"'
                                         : 'Results',
-                                style: Styles.intelStyle.copyWith(
+                                style: Styles.interStyle.copyWith(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,

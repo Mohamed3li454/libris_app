@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/constants/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/models/book_model.dart';
-import 'package:libris_app/features/library/data/repos/favorites_repo_impl.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 
 class FavoriteIconButton extends StatefulWidget {
   final BookModel? bookModel;
@@ -13,12 +14,11 @@ class FavoriteIconButton extends StatefulWidget {
 }
 
 class _FavoriteIconButtonState extends State<FavoriteIconButton> {
-  final _favoritesRepo = FavoritesRepoImpl();
   bool _isSaved = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _checkFavoriteStatus();
   }
 
@@ -32,16 +32,21 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
 
   void _checkFavoriteStatus() {
     if (widget.bookModel != null && widget.bookModel!.key.isNotEmpty) {
-      setState(() {
-        _isSaved = _favoritesRepo.isBookFavorite(widget.bookModel!.key);
-      });
+      final isSaved = context.read<LibraryCubit>().isBookFavorite(
+        widget.bookModel!.key,
+      );
+      if (isSaved != _isSaved) {
+        setState(() {
+          _isSaved = isSaved;
+        });
+      }
     }
   }
 
   Future<void> _toggleFavorite() async {
     if (widget.bookModel == null || widget.bookModel!.key.isEmpty) return;
 
-    final isNowSaved = await _favoritesRepo.toggleFavoriteBook(
+    final isNowSaved = await context.read<LibraryCubit>().toggleFavoriteBook(
       widget.bookModel!,
     );
     setState(() {
@@ -69,7 +74,7 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
       icon: Icon(
         _isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
         size: 28,
-        color: AppColors.primary,
+        color: context.colors.primary,
       ),
       onPressed: _toggleFavorite,
     );

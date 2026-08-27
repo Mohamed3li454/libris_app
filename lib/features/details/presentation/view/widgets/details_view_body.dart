@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/models/book_model.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/core/utils/styles.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_description_section.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_details_item.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_header_info.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/book_stats_card.dart';
 import 'package:libris_app/features/details/presentation/view/widgets/favorite_icon_button.dart';
+import 'package:libris_app/features/details/presentation/view/widgets/similar_books_section.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/custom_appbar.dart';
 
 class DetailsViewBody extends StatelessWidget {
@@ -23,17 +24,17 @@ class DetailsViewBody extends StatelessWidget {
           children: [
             CustomAppBar(
               leading: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new,
                   size: 28,
-                  color: AppColors.primary,
+                  color: context.colors.primary,
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
               title: Text(
                 "Libris",
-                style: Styles.intelStyle.copyWith(
-                  color: AppColors.primary,
+                style: Styles.interStyle.copyWith(
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w900,
                   fontSize: 28,
                 ),
@@ -48,8 +49,12 @@ class DetailsViewBody extends StatelessWidget {
               author: bookModel?.authorName ?? '',
             ),
             const SizedBox(height: 4),
-            BookStatsCard(publishYear: bookModel?.firstPublishYear),
+            BookStatsCard(
+              publishYear: bookModel?.firstPublishYear,
+              language: bookModel?.language,
+            ),
             const BookDescriptionSection(),
+            const SimilarBooksSection(),
           ],
         ),
       ),

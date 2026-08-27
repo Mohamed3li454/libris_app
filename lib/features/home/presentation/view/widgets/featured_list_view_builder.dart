@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
-import 'package:libris_app/features/home/presentation/manager/featured%20books%20cubit/featured_books_cubit.dart';
+import 'package:libris_app/features/home/presentation/manager/featured_books_cubit/featured_books_cubit.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/feature_book_item.dart';
 import 'package:libris_app/features/home/presentation/view/widgets/featured_books_shimmer_loading.dart';
 

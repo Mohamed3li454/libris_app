@@ -17,9 +17,33 @@ class SearchRepoImpl implements SearchRepo {
     int limit = 20,
   }) async {
     try {
-      var data = await apiService.searchBooks(query, page: page, limit: limit);
-      final bookResponse = BookResponseModel.fromJson(data);
-      return right(bookResponse.books);
+      final results = await Future.wait([
+        apiService
+            .searchBooks(query, page: page, limit: limit)
+            .then((data) => BookResponseModel.fromJson(data).books)
+            .catchError((_) => <BookModel>[]),
+        apiService
+            .searchArchiveBooks(query, page: page, limit: limit)
+            .then(BookModel.listFromArchiveResponse)
+            .catchError((_) => <BookModel>[]),
+      ]);
+
+      var openLibraryBooks = results[0];
+      var archiveBooks = results[1];
+
+      if (archiveBooks.isEmpty) {
+        archiveBooks = await apiService
+            .searchArchiveBooks(
+              query,
+              page: page,
+              limit: limit,
+              applyLanguageFilter: false,
+            )
+            .then(BookModel.listFromArchiveResponse)
+            .catchError((_) => <BookModel>[]);
+      }
+
+      return right(_mergeSearchResults(openLibraryBooks, archiveBooks));
     } catch (e) {
       if (e is Failure) return left(e);
       if (e is DioException) return left(ServerFailure.fromDioError(e));
@@ -28,6 +52,32 @@ class SearchRepoImpl implements SearchRepo {
       }
       return left(ServerFailure('Search failed. Please try again.'));
     }
+  }
+
+  List<BookModel> _mergeSearchResults(
+    List<BookModel> openLibraryBooks,
+    List<BookModel> archiveBooks,
+  ) {
+    final merged = <BookModel>[...openLibraryBooks];
+    final olByTitle = <String, int>{};
+
+    for (var i = 0; i < merged.length; i++) {
+      final normalized = normalizeBookTitle(merged[i].title);
+      if (normalized.isNotEmpty) {
+        olByTitle.putIfAbsent(normalized, () => i);
+      }
+    }
+
+    for (final archiveBook in archiveBooks) {
+      final normalized = normalizeBookTitle(archiveBook.title);
+      final matchIndex = normalized.isEmpty ? null : olByTitle[normalized];
+      if (matchIndex != null) {
+        continue;
+      }
+      merged.add(archiveBook);
+    }
+
+    return merged;
   }
 
   @override
