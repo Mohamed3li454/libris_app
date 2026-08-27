@@ -1,929 +1,238 @@
-# Libris App - Comprehensive Project Context & Technical Reference
+# Libris App — Project Context & Technical Reference
 
-> **Document Purpose**: This document serves as the single source of truth and comprehensive technical reference for the Libris Flutter application. It details the architecture, API integration, state management, domain contracts, data models, persistence, and navigation systems based strictly on the codebase implementation.
+Single source of truth for the current codebase: architecture, APIs, cubits, models, persistence, and navigation.
 
 ---
 
 ## Table of Contents
-1. [Project Overview & Architecture](#project-overview--architecture)
-2. [API Layer](#1-api-layer)
-   - [API Constants](#api-constants)
-   - [DioFactory & ApiService Configuration](#dio-client--apiservice-configuration)
-   - [Feature API Endpoints & Contract Details](#feature-api-endpoints--contract-details)
-3. [State Management (Cubits)](#2-state-management-cubits)
-   - [FeaturedBooksCubit](#featuredbookscubit)
-   - [FilterBooksCubit](#filterbookscubit)
-   - [ExploreCubit](#explorecubit)
-   - [BookDetailsCubit](#bookdetailscubit)
-   - [LibraryCubit](#librarycubit)
-4. [Domain Layer](#3-domain-layer)
-   - [Repository Interfaces](#repository-interfaces)
-   - [Entities & Use Cases Assessment](#entities--use-cases-assessment)
-   - [Failure Hierarchy & Functional Error Flow](#failure-hierarchy--functional-error-flow)
-5. [Data Layer](#4-data-layer)
-   - [Data Models & Serialization](#data-models--serialization)
-   - [Data Sources & Repository Implementations](#data-sources--repository-implementations)
-6. [Local Storage (Hive & SharedPreferences)](#5-local-storage-hive--sharedpreferences)
-   - [Hive Boxes & Data Structures](#hive-boxes--data-structures)
-   - [Hive Constants](#hive-constants)
-   - [SharedPreferences (Onboarding & Search History)](#sharedpreferences-onboarding--search-history)
-7. [Routing & Navigation](#6-routing--navigation)
-   - [GoRouter Configuration](#gorouter-configuration)
-   - [Nested Bottom Navigation Mechanics](#nested-bottom-navigation-mechanics)
+
+1. [Overview](#overview)
+2. [Bootstrap & DI](#bootstrap--di)
+3. [API Layer](#api-layer)
+4. [Search merge & reading](#search-merge--reading)
+5. [State management](#state-management)
+6. [Models](#models)
+7. [Repositories](#repositories)
+8. [Local storage](#local-storage)
+9. [Routing & navigation](#routing--navigation)
+10. [Theming & settings](#theming--settings)
 
 ---
 
-## Project Overview & Architecture
+## Overview
 
-- **Application Name**: Libris App
-- **Language**: Dart (SDK `^3.12.2`)
-- **Framework**: Flutter (Material 3)
-- **Architecture Pattern**: Clean Architecture with Feature-First packaging + BLoC/Cubit state management pattern.
-- **Key External Dependencies**: `dio`, `dartz`, `flutter_bloc`, `equatable`, `hive`/`hive_flutter`, `go_router`, `cached_network_image`, `shimmer`, `flutter_dotenv`, `shared_preferences`, `google_fonts`, `lottie`, `smooth_page_indicator`, `url_launcher`, `flutter_staggered_grid_view`, `flutter_screenutil_plus`.
+- **Name**: Libris
+- **SDK**: Dart `^3.12.2` / Flutter Material 3
+- **Pattern**: Feature-first folders + Cubit + repository interfaces (no use-case layer)
+- **Android**: `applicationId` / namespace `com.mohamed.libris`; `INTERNET` in the main manifest; label `Libris`
+- **Dependencies (runtime)**: `dio`, `dartz`, `flutter_bloc`, `equatable`, `hive` / `hive_flutter`, `go_router`, `cached_network_image`, `shimmer`, `shared_preferences`, `google_fonts`, `lottie`, `smooth_page_indicator`, `url_launcher`, `flutter_staggered_grid_view`, `share_plus`, `file_picker`, `path_provider`
 
----
-
-## 1. API Layer
-
-### API Constants
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/constants/api_constants.dart`
-
-```dart
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-class ApiConstants {
-  ApiConstants._();
-
-  static String get apiKey => dotenv.env['API_KEY'] ?? '';
-}
-```
-
-- **Base URL**: `https://openlibrary.org/` (Defined in `/Users/mohamed3li/projects/libris_app/lib/core/utils/api_service.dart`)
-- **API Keys / Environment**: `ApiConstants.apiKey` reads the `API_KEY` environment variable loaded asynchronously at startup in `main.dart` via `dotenv.load(fileName: ".env")`.
-- **Note on Endpoints in `api_constants.dart`**: Not found. Endpoints and query parameters are declared and formatted directly within `/Users/mohamed3li/projects/libris_app/lib/core/utils/api_service.dart`.
+Removed / unused: `flutter_dotenv`, `http`, `flutter_screenutil_plus`, `lib/constants/api_constants.dart`.
 
 ---
 
-### Dio Client & ApiService Configuration
+## Bootstrap & DI
 
-#### DioFactory (Centralized Dio Instance)
-- **Full File Path**: `lib/core/utils/dio_factory.dart`
+`lib/main.dart`:
 
-```dart
-class DioFactory {
-  DioFactory._();
+1. `Hive.initFlutter()` and open `kFeaturedBox`, `kFilterBox`, `kFavoritesBox`
+2. `ServiceLocator.init()`
+3. `runApp(MyApp)`
 
-  static final Dio _dio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 12),
-      sendTimeout: const Duration(seconds: 12),
-      receiveTimeout: const Duration(seconds: 15),
-      headers: {'Accept': 'application/json'},
-    ),
-  );
+`MyApp` wraps the router with:
 
-  static Dio get dio => _dio;
-}
-```
+- `ThemeCubit` (persisted `theme_mode`)
+- `LibraryCubit` (app-wide so Details bookmarks refresh Library)
 
-- **Usage**: All Cubits inject `ApiService(DioFactory.dio)` as the default network client (`FeaturedBooksCubit`, `FilterBooksCubit`, `ExploreCubit`, `BookDetailsCubit`).
+`lib/core/di/service_locator.dart` holds:
 
-#### ApiService
-- **Full File Path**: `lib/core/utils/api_service.dart`
+- `ApiService(DioFactory.dio)`
+- `HomeRepoImpl`, `SearchRepoImpl`, `DetailsRepoImpl`, `FavoritesRepoImpl`
 
-```dart
-class ApiService {
-  final String baseUrl = "https://openlibrary.org/";
-  final Dio _dio;
-
-  ApiService(this._dio);
-
-  Future<Map<String, dynamic>> getData({required String endPoint}) async { ... }
-  Future<Map<String, dynamic>> fetchBookDetails(String workKey) async { ... }
-  Future<Map<String, dynamic>> fetchBookRating(String workKey) async { ... }
-  Future<Map<String, dynamic>> fetchTrendingBooks({int limit = 50}) async { ... }
-  Future<Map<String, dynamic>> searchBooks(String query, {int page = 1, int limit = 20}) async { ... }
-  Future<Map<String, dynamic>> fetchBooksBySubject(String subject, {int page = 1, int limit = 20}) async { ... }
-}
-```
-
-#### Detailed Configuration Breakdown:
-1. **Instantiation**: `ApiService` receives a `Dio` instance injected via constructor. Cubits default to `ApiService(DioFactory.dio)`.
-2. **BaseOptions**: Configured centrally in `DioFactory` — connect/send timeout 12s, receive timeout 15s, `Accept: application/json` header.
-3. **Base URL**: `https://openlibrary.org/` is maintained as a constant string inside `ApiService` and concatenated directly with `endPoint`.
-4. **Pagination**: `searchBooks` uses `page` + `limit` query params; `fetchBooksBySubject` uses `offset = (page - 1) * limit` + `limit`.
-5. **Interceptors**: None configured.
-6. **Error Handling**: Uncaught exceptions propagate to Repository Implementations, where `DioException` instances are translated into `ServerFailure` via `ServerFailure.fromDioError(e)` in `lib/core/errors/failure.dart`.
+Cubits default to `ServiceLocator.*` when no repo is injected.
 
 ---
 
-### Feature API Endpoints & Contract Details
+## API Layer
 
-#### 1. Home Feature
-- **Repository Implementation Path**: `/Users/mohamed3li/projects/libris_app/lib/features/home/data/repos/home_repo_impl.dart`
-- **Underlying Service Path**: `/Users/mohamed3li/projects/libris_app/lib/core/utils/api_service.dart`
+### DioFactory — `lib/core/utils/dio_factory.dart`
 
-##### A. `fetchFeaturedBooks()`
-- **Calling Method**: `HomeRepoImpl.fetchFeaturedBooks()` calling `ApiService.getData(endPoint: "trending/weekly.json?limit=20")`
-- **Exact Endpoint**: `https://openlibrary.org/trending/weekly.json?limit=20`
-- **Parameters**: None (Hardcoded query parameter `limit=20` in `endPoint`)
-- **JSON Response Shape Example**:
-```json
-{
-  "query": "weekly",
-  "works": [
-    {
-      "key": "/works/OL82563W",
-      "title": "Harry Potter and the Sorcerer's Stone",
-      "author_name": ["J.K. Rowling"],
-      "cover_i": 10521270,
-      "first_publish_year": 1997
-    },
-    {
-      "key": "/works/OL45804W",
-      "title": "The Hobbit",
-      "author_name": ["J.R.R. Tolkien"],
-      "cover_i": 8406786,
-      "first_publish_year": 1937
-    }
-  ],
-  "days": 7
-}
-```
+Shared `Dio` with connect/send 12s, receive 15s, `Accept: application/json`. No interceptors.
 
-##### B. `fetchFilterBooks({required String category})`
-- **Calling Method**: `HomeRepoImpl.fetchFilterBooks({required String category})` calling `ApiService.getData(endPoint: "search.json?q=$subject&limit=50")`
-- **Exact Endpoint**: `https://openlibrary.org/search.json?q={subject}&limit=50`
-  - *Logic*: If `category.isEmpty` or `category.toLowerCase() == 'all'`, `subject` defaults to `'general'`, otherwise `category.toLowerCase()`.
-- **Parameters**: `category` (`String`, required)
-- **JSON Response Shape Example**:
-```json
-{
-  "numFound": 14205,
-  "start": 0,
-  "numFoundExact": true,
-  "docs": [
-    {
-      "key": "/works/OL102749W",
-      "title": "Clean Code",
-      "author_name": ["Robert C. Martin"],
-      "cover_i": 9257697,
-      "first_publish_year": 2008
-    }
-  ]
-}
-```
+### ApiService — `lib/core/utils/api_service.dart`
+
+**Open Library** base: `https://openlibrary.org/`
+
+| Method | Endpoint |
+| :--- | :--- |
+| `fetchBookDetails(workKey)` | `{cleanKey}.json` |
+| `fetchBookRating(workKey)` | `{cleanKey}/ratings.json` |
+| `fetchWorkEditions(workKey)` | `{cleanKey}/editions.json?limit=20` |
+| `fetchTrendingBooks` | `trending/weekly.json?limit=` |
+| `searchBooks` | `search.json?q=...&limit=&page=` plus `&language=eng` unless the query contains Arabic |
+| `fetchBooksBySubject` | `search.json?q=subject:{subject}&language=eng&limit=&page=` |
+
+**Internet Archive** (full URLs on the same Dio):
+
+| Method | Role |
+| :--- | :--- |
+| `searchArchiveBooks` | `advancedsearch.php` — `mediatype:texts`, optional English/Arabic language filter, excludes `inlibrary` / `printdisabled` when `publicOnly` |
+| `fetchArchiveMetadata` | `https://archive.org/metadata/{identifier}` |
+| `resolveArchiveReaderUrl` | Finds a public identifier by title (English-only when the title is not Arabic; skips non-English docs). Returns `https://archive.org/details/{id}/page/n19/mode/2up` |
+
+Home featured still uses `trending/weekly.json?limit=20`. Home filters use `search.json?q={subject}&language=eng&limit=50`.
+
+Cache keys: `featured_list_eng`, `{subject}_eng`. TTL 8 hours. `HomeRepo.clearCache()` wipes featured + filter boxes.
 
 ---
 
-#### 2. Explore Feature
-- **Repository Implementation Path**: `/Users/mohamed3li/projects/libris_app/lib/features/explore/data/repos/search_repo_impl.dart`
-- **Underlying Service Path**: `/Users/mohamed3li/projects/libris_app/lib/core/utils/api_service.dart`
+## Search merge & reading
 
-##### A. `searchBooks(String query, {int page = 1, int limit = 20})`
-- **Calling Method**: `SearchRepoImpl.searchBooks(query, page: page, limit: limit)` calling `ApiService.searchBooks(query, page: page, limit: limit)` -> `ApiService.getData(endPoint: "search.json?q=$encodedQuery&limit=$limit&page=$page")`
-- **Exact Endpoint**: `https://openlibrary.org/search.json?q={Uri.encodeComponent(query)}&limit={limit}&page={page}`
-- **Parameters**: `query` (`String`), `page` (`int`, default `1`), `limit` (`int`, default `20`)
-- **JSON Response Shape Example**:
-```json
-{
-  "numFound": 320,
-  "start": 0,
-  "docs": [
-    {
-      "key": "/works/OL27479W",
-      "title": "1984",
-      "author_name": ["George Orwell"],
-      "cover_i": 12645114,
-      "first_publish_year": 1949
-    }
-  ]
-}
-```
+### Explore search — `SearchRepoImpl.searchBooks`
 
-##### B. `fetchBooksBySubject(String subject, {int page = 1, int limit = 20})`
-- **Calling Method**: `SearchRepoImpl.fetchBooksBySubject(subject, page: page, limit: limit)` calling `ApiService.fetchBooksBySubject(subject, page: page, limit: limit)` -> `ApiService.getData(endPoint: "subjects/$cleanSubject.json?limit=$limit&offset=$offset")`
-  - *Logic*: Subject is cleaned via `subject.toLowerCase().replaceAll(' ', '_')`. Offset computed as `(page - 1) * limit`.
-- **Exact Endpoint**: `https://openlibrary.org/subjects/{cleanSubject}.json?limit={limit}&offset={offset}`
-- **Parameters**: `subject` (`String`), `page` (`int`, default `1`), `limit` (`int`, default `20`)
-- **JSON Response Shape Example**:
-```json
-{
-  "key": "/subjects/science_fiction",
-  "name": "Science Fiction",
-  "work_count": 8900,
-  "works": [
-    {
-      "key": "/works/OL262758W",
-      "title": "Dune",
-      "authors": [
-        {
-          "key": "/authors/OL31574A",
-          "name": "Frank Herbert"
-        }
-      ],
-      "cover_id": 11149138,
-      "first_publish_year": 1965
-    }
-  ]
-}
-```
+Runs Open Library search and Archive search in parallel.
 
-##### C. `fetchTrendingBooks({int limit = 50})`
-- **Calling Method**: `SearchRepoImpl.fetchTrendingBooks({int limit = 50})` calling `ApiService.fetchTrendingBooks({int limit = 50})` -> `ApiService.getData(endPoint: "trending/weekly.json?limit=$limit")`
-- **Exact Endpoint**: `https://openlibrary.org/trending/weekly.json?limit={limit}`
-- **Parameters**: `limit` (`int`, optional, default = `50`)
-- **JSON Response Shape Example**:
-```json
-{
-  "query": "weekly",
-  "works": [
-    {
-      "key": "/works/OL82563W",
-      "title": "Harry Potter and the Sorcerer's Stone",
-      "author_name": ["J.K. Rowling"],
-      "cover_i": 10521270,
-      "first_publish_year": 1997
-    }
-  ]
-}
-```
+1. **Open Library results first** (metadata, covers, `/works/` keys, English bias for Latin queries).
+2. **Archive.org-only books appended** if the normalized title is not already in the OL list.
+3. Matching titles are **not** given the Archive `ia` id (that id is often a French/Spanish scan).
+4. If Archive returns empty, one retry without the language filter.
+
+`normalizeBookTitle` lowercases, strips the subtitle after `:`, and keeps letters/digits/Arabic.
+
+### Details — `DetailsRepoImpl.fetchBookDetails`
+
+1. If `workKey` contains `/works/`, load Open Library details + ratings + editions.
+2. If the item is Archive-only (`/ia/...`), try to resolve an Open Library work by title; if found, use OL details.
+3. Only if there is no OL work, fall back to Archive metadata.
+4. **Read / Download URLs** are never the OL `ia` / attached identifier. They always come from `resolveArchiveReaderUrl(title: openLibraryTitle)` so the reader language matches the details screen (English for English titles).
+
+Reader URL shape:
+
+`https://archive.org/details/{identifier}/page/n19/mode/2up`
+
+Direct `/download/` PDF links are not used (they caused HTTP 401).
+
+Details action bar shows shimmer while `BookDetailsLoading` / `BookDetailsInitial`.
 
 ---
 
-#### 3. Details Feature
-- **Repository Implementation Path**: `/Users/mohamed3li/projects/libris_app/lib/features/details/data/repos/details_repo_impl.dart`
-- **Underlying Service Path**: `/Users/mohamed3li/projects/libris_app/lib/core/utils/api_service.dart`
-
-##### A. `fetchBookDetails(String workKey)` & `fetchBookRating(String workKey)`
-- **Calling Method**: `DetailsRepoImpl.fetchBookDetails(String workKey)` executes concurrent API calls via `Future.wait([apiService.fetchBookDetails(workKey), apiService.fetchBookRating(workKey).catchError(...)])`.
-- **Exact Endpoints**:
-  1. Book Details: `https://openlibrary.org/{cleanKey}.json` (where `cleanKey` strips leading `'/'` if present).
-  2. Book Ratings: `https://openlibrary.org/{cleanKey}/ratings.json`
-- **Parameters**: `workKey` (`String`, e.g. `"/works/OL82563W"` or `"works/OL82563W"`)
-- **JSON Response Shape Examples**:
-  - *Details Endpoint Response*:
-```json
-{
-  "description": {
-    "type": "/type/text",
-    "value": "Harry Potter has never even heard of Hogwarts when the letters start dropping on the doormat..."
-  },
-  "title": "Harry Potter and the Sorcerer's Stone",
-  "key": "/works/OL82563W",
-  "subjects": [
-    "Fantasy",
-    "Wizards",
-    "Magic",
-    "Hogwarts School of Witchcraft and Wizardry"
-  ],
-  "links": [
-    {
-      "title": "Internet Archive",
-      "url": "https://archive.org/details/harrypotterphilosophersstone"
-    }
-  ]
-}
-```
-  - *Ratings Endpoint Response*:
-```json
-{
-  "summary": {
-    "average": 4.62,
-    "count": 2841,
-    "sortable": 4.618
-  }
-}
-```
-
----
-
-#### 4. Library Feature
-- **API Call Status**: **Not found**
-- **Explanation**: The Library feature operates purely offline and communicates strictly with local Hive storage (`kFavoritesBox`) via `FavoritesRepoImpl`. It does not perform any HTTP or API network operations.
-
----
-
-## 2. State Management (Cubits)
+## State management
 
 ```
-                       ┌─────────────────────────┐
-                       │      UI / Widgets       │
-                       └────────────┬────────────┘
-                                    │ triggers method
-                                    ▼
-                       ┌─────────────────────────┐
-                       │          Cubit          │
-                       └────────────┬────────────┘
-                                    │ calls
-                                    ▼
-                       ┌─────────────────────────┐
-                       │   Repository Contract   │
-                       └────────────┬────────────┘
-                                    │
-                  ┌─────────────────┴─────────────────┐
-                  ▼                                   ▼
-        ┌───────────────────┐               ┌───────────────────┐
-        │    ApiService     │               │   Hive Storage    │
-        │   (Dio Client)    │               │  (Local Caches)   │
-        └───────────────────┘               └───────────────────┘
+UI → Cubit → Repo interface → ApiService / Hive
 ```
 
----
-
-### FeaturedBooksCubit
-- **Full File Paths**:
-  - Cubit: `/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/manager/featured books cubit/featured_books_cubit.dart`
-  - States: `/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/manager/featured books cubit/featured_books_state.dart`
-- **Inheritance**: `Cubit<FeaturedBooksState>` with `Equatable`
-
-#### States & Payload:
-1. `FeaturedBooksInitial`: Initial state before fetching. Carries no payload.
-2. `FeaturedBooksLoading`: Emitted immediately when `fetchFeaturedBooks()` starts. Carries no payload.
-3. `FeaturedBooksSuccess`: Emitted when books are fetched successfully.
-   - Payload: `final List<BookModel> books;`
-4. `FeaturedBooksFailure`: Emitted when an error occurs.
-   - Payload: `final String errMessage;`
-
-#### Public Methods & Invocations:
-- `Future<void> fetchFeaturedBooks()`:
-  - Emits `FeaturedBooksLoading()`.
-  - Invokes `HomeRepo.fetchFeaturedBooks()`.
-  - On `Left(failure)`, emits `FeaturedBooksFailure(failure.errMessage)`.
-  - On `Right(books)`, emits `FeaturedBooksSuccess(books)`.
-  - Checks `if (isClosed) return;` to prevent emitting states on unmounted widgets.
-
-#### Listening / Calling Widgets:
-- **Provided in**: `HomeView` (`lib/features/home/presentation/view/home_view.dart`) via `MultiBlocProvider`. Default repo uses `ApiService(DioFactory.dio)`.
-- **Listened by**:
-  - `FeaturedListViewBuilder` (`lib/features/home/presentation/view/widgets/featured_list_view_builder.dart`) via `BlocBuilder<FeaturedBooksCubit, FeaturedBooksState>`.
-- **Called by**:
-  - `HomeView` (triggered on create: `..fetchFeaturedBooks()`).
-  - `HomeViewBody` (pull-to-refresh `RefreshIndicator` triggers `featuredCubit.fetchFeaturedBooks()`).
-  - `FeaturedListViewBuilder` (retry button in `CustomErrorWidget`).
-
----
-
-### FilterBooksCubit
-- **Full File Paths**:
-  - Cubit: `/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/manager/filter_books_cubit/filter_books_cubit.dart`
-  - States: `/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/manager/filter_books_cubit/filter_books_state.dart`
-- **Inheritance**: `Cubit<FilterBooksState>` with `Equatable`
-- **Internal State Variables**: `String currentCategory = 'All';`
-
-#### States & Payload:
-1. `FilterBooksInitial`: Initial state before any category fetch. Carries no payload.
-2. `FilterBooksLoading`: Emitted immediately when fetching starts. Carries no payload.
-3. `FilterBooksSuccess`: Emitted when category books are retrieved.
-   - Payload: `final List<BookModel> books;`, `final String category;`
-4. `FilterBooksFailure`: Emitted when category fetching fails.
-   - Payload: `final String errMessage;`
-
-#### Public Methods & Invocations:
-- `Future<void> fetchFilterBooks({required String category})`:
-  - Sets `currentCategory = category`.
-  - Emits `FilterBooksLoading()`.
-  - Invokes `HomeRepo.fetchFilterBooks(category: category)`.
-  - On `Left(failure)`, emits `FilterBooksFailure(failure.errMessage)`.
-  - On `Right(books)`, emits `FilterBooksSuccess(books: books, category: category)`.
-
-#### Listening / Calling Widgets:
-- **Provided in**: `HomeView` (`/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/view/home_view.dart`) via `MultiBlocProvider`.
-- **Listened by**:
-  - `FilterBookSliverListView` (`/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/view/widgets/filter_book_sliver_list_view.dart`) via `BlocBuilder<FilterBooksCubit, FilterBooksState>`.
-- **Called by**:
-  - `HomeView` (on initialization: `..fetchFilterBooks(category: 'All')`).
-  - `HomeViewBody` (pull-to-refresh `RefreshIndicator`).
-  - `FilterChipsList` (`/Users/mohamed3li/projects/libris_app/lib/features/home/presentation/view/widgets/filter_chips_list.dart`) when user taps on any chip (Tech, Fiction, History, Business, etc.).
-  - `FilterBookSliverListView` (retry button in `CustomErrorWidget`).
-
----
-
-### ExploreCubit
-- **Full File Paths**:
-  - Cubit: `lib/features/explore/presentation/manager/explore_cubit/explore_cubit.dart`
-  - States: `lib/features/explore/presentation/manager/explore_cubit/explore_state.dart`
-- **Inheritance**: `Cubit<ExploreState>` with `Equatable`
-- **Internal State Variables**:
-  - `Timer? _debounceTimer;` (400ms debounce timer for keystroke throttling)
-  - `List<BookModel> _books = []` (accumulated paginated results)
-  - `int _currentPage = 1`
-  - `bool _hasMore = false`
-  - `bool _isLoadingMore = false`
-  - `String _lastQuery = ''`, `String _lastSubject = ''`
-  - `ExploreMode _mode` (`none`, `search`, `subject`, `trending`)
-  - `static const int _pageSize = 20`
-
-#### States & Payload:
-1. `ExploreInitial`: Initial default screen state (shows `ExploreWelcomeState` with recent searches, trending topics, genre grid, and library authors). Carries no payload.
-2. `ExploreLoading`: Emitted while searching or fetching categories. Carries no payload.
-3. `ExploreSuccess`: Emitted when search results or category books are found.
-   - Payload: `final List<BookModel> books;`, `final String? query;`, `final String? activeCategory;`, `final bool hasMore;`, `final bool isLoadingMore;`
-4. `ExploreEmpty`: Emitted when an API query returns 0 books.
-   - Payload: `final String query;`
-5. `ExploreFailure`: Emitted on search/network errors.
-   - Payload: `final String errMessage;`
-
-#### Public Methods & Invocations:
-- `void searchBooksDebounced(String query)`: Cancels active timer, validates query length (minimum 3 characters; emits `ExploreInitial()` if shorter), schedules `searchBooks(cleanQuery)` after 400ms.
-- `Future<void> searchBooks(String query)`: Resets pagination, sets `_mode = ExploreMode.search`, emits `ExploreLoading()`, calls `SearchRepo.searchBooks(cleanQuery, page: 1, limit: 20)`. Emits `ExploreEmpty` if list is empty, or `ExploreSuccess(hasMore: books.length >= _pageSize)` if books exist.
-- `Future<void> fetchBooksBySubject(String subject)`: Cancels timer, resets pagination, sets `_mode = ExploreMode.subject`, emits `ExploreLoading()`, calls `SearchRepo.fetchBooksBySubject(subject, page: 1, limit: 20)`.
-- `Future<void> fetchTrendingBooks({int limit = 50})`: Cancels timer, sets `_mode = ExploreMode.trending`, emits `ExploreLoading()`, calls `SearchRepo.fetchTrendingBooks(limit: limit)`. No pagination (`hasMore: false`).
-- `Future<void> loadMore()`: Appends next page for search/subject modes when `_hasMore && !_isLoadingMore`. Emits `ExploreSuccess(isLoadingMore: true)` during fetch, then merges new books into `_books`.
-- `void resetSearch()`: Cancels timer, resets all pagination state, emits `ExploreInitial()`.
-- `close()`: Cancels timer and closes cubit.
-
-#### Listening / Calling Widgets:
-- **Provided in**: `ExploreView` (`lib/features/explore/presentation/view/explore_view.dart`).
-- **Listened by**:
-  - `ExploreViewBody` (`lib/features/explore/presentation/view/widgets/explore_view_body.dart`) via `BlocConsumer<ExploreCubit, ExploreState>`.
-- **Called by**:
-  - `CustomSearchTextField` on typing (`searchBooksDebounced`) and clear (`resetSearch`).
-  - `ExploreCategoryChipsList` (`fetchBooksBySubject`).
-  - `ExploreWelcomeState` / `ExploreGenresGrid` (genre tap → `fetchBooksBySubject`; suggestion tap → `searchBooks`).
-  - `ExploreViewBody` (`_executeInitialSearch` routing from Home's "See All" triggers `fetchTrendingBooks`; scroll listener and "Load more" button trigger `loadMore`).
-  - `ExploreViewBody` (retry button in `CustomErrorWidget`).
-
----
-
-### BookDetailsCubit
-- **Full File Paths**:
-  - Cubit: `/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/manager/book_details_cubit/book_details_cubit.dart`
-  - States: `/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/manager/book_details_cubit/book_details_state.dart`
-- **Inheritance**: `Cubit<BookDetailsState>` with `Equatable`
-
-#### States & Payload:
-1. `BookDetailsInitial`: Initial state before fetching details. Carries no payload.
-2. `BookDetailsLoading`: Emitted while details and ratings are being fetched. Carries no payload.
-3. `BookDetailsSuccess`: Emitted when detailed book information and ratings are loaded.
-   - Payload: `final BookDetailModel bookDetail;`
-4. `BookDetailsFailure`: Emitted if the details request fails.
-   - Payload: `final String errMessage;`
-
-#### Public Methods & Invocations:
-- `Future<void> fetchBookDetails({required String workKey})`:
-  - Emits `BookDetailsLoading()`.
-  - Invokes `DetailsRepo.fetchBookDetails(workKey)`.
-  - On `Left(failure)`, emits `BookDetailsFailure(failure.errMessage)`.
-  - On `Right(bookDetail)`, emits `BookDetailsSuccess(bookDetail)`.
-
-#### Listening / Calling Widgets:
-- **Provided in**: `DetailsView` (`/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/details_view.dart`).
-- **Listened by**:
-  - `BookHeaderInfo` (`/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/widgets/book_header_info.dart`) to show primary genre/category tag with shimmer loading.
-  - `BookStatsCard` (`/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/widgets/book_stats_card.dart`) to show ratings and votes with shimmer loading.
-  - `BookDescriptionSection` (`/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/widgets/book_description_section.dart`) to display full expandable/collapsible description.
-  - `BookActionBottomBar` (`/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/widgets/book_action_bottom_bar.dart`) to extract dynamic `readUrl` and `downloadUrl`.
-- **Called by**:
-  - `DetailsView` upon creation (`if (bookModel != null && bookModel!.key.isNotEmpty) cubit.fetchBookDetails(...)`).
-
----
+| Cubit | Path | Notes |
+| :--- | :--- | :--- |
+| `ThemeCubit` | `features/settings/presentation/manager/theme_cubit.dart` | `ThemeMode` system/light/dark |
+| `LibraryCubit` | `features/library/presentation/manager/library_cubit/` | App-scoped; collections, sort, progress, backup |
+| `FeaturedBooksCubit` | `features/home/presentation/manager/featured_books_cubit/` | Folder has no spaces |
+| `FilterBooksCubit` | `features/home/presentation/manager/filter_books_cubit/` | |
+| `ExploreCubit` | `features/explore/presentation/manager/explore_cubit/` | Debounce 400ms; `loadMoreError` keeps the list |
+| `BookDetailsCubit` | `features/details/presentation/manager/book_details_cubit/` | Then loads similar books by OL subject |
 
 ### LibraryCubit
-- **Full File Paths**:
-  - Cubit: `/Users/mohamed3li/projects/libris_app/lib/features/library/presentation/manager/library_cubit/library_cubit.dart`
-  - States: `/Users/mohamed3li/projects/libris_app/lib/features/library/presentation/manager/library_cubit/library_state.dart`
-- **Inheritance**: `Cubit<LibraryState>` with `Equatable`
-- **Internal State Variables**:
-  - `String selectedCollection = 'All';`
-  - `static const List<String> collections = ['All', 'Favorites', 'Want to Read', 'Finished'];`
 
-#### States & Payload:
-1. `LibraryInitial`: Initial state before querying Hive. Carries no payload.
-2. `LibraryLoading`: Emitted while querying Hive storage. Carries no payload.
-3. `LibrarySuccess`: Emitted when saved books match the active collection filter.
-   - Payload: `final List<BookModel> books;`, `final String selectedCollection;`
-4. `LibraryEmpty`: Emitted when no books exist in the selected collection.
-   - Payload: `final String selectedCollection;`
-5. `LibraryFailure`: Emitted on Hive read exceptions.
-   - Payload: `final String errMessage;`
+Collections: `All`, `Want to Read`, `Reading`, `Finished`, `Favorites`.
 
-#### Public Methods & Invocations:
-- `void fetchFavoriteBooks()`:
-  - Emits `LibraryLoading()`.
-  - Invokes `FavoritesRepo.getFavoriteBooks(collection: selectedCollection)`.
-  - Emits `LibraryEmpty(selectedCollection)` if empty or `LibrarySuccess(books: books, selectedCollection: selectedCollection)` if non-empty.
-- `Future<bool> toggleFavoriteBook(BookModel book)`:
-  - Invokes `FavoritesRepo.toggleFavoriteBook(book)`.
-  - Re-invokes `fetchFavoriteBooks()` to refresh UI state. Returns `bool` (`true` if saved, `false` if removed).
-- `void setCollectionFilter(String collection)`:
-  - Updates `selectedCollection = collection` and refreshes list via `fetchFavoriteBooks()`.
-- `Future<void> moveBookToCollection(String key, String collection)`:
-  - Invokes `FavoritesRepo.updateBookCollection(key, collection)` and refreshes list.
-- `String exportFavoritesJson()`:
-  - Returns formatted JSON string backup of all saved books and their collection assignments via `FavoritesRepo.exportFavoritesJson()`.
-- `Future<void> importFavoritesJson(String rawJson)`:
-  - Imports books from JSON backup into Hive via `FavoritesRepo.importFavoritesJson(rawJson)` and refreshes list.
-- `Future<void> removeFavoriteBook(String key)`:
-  - Invokes `FavoritesRepo.removeFavoriteBook(key)` and refreshes list.
-- `bool isBookFavorite(String key)`:
-  - Returns `FavoritesRepo.isBookFavorite(key)` directly.
+Sort: `LibrarySort.recent` | `title` | `year`.
 
-#### Listening / Calling Widgets:
-- **Provided in**: `LibraryView` (`/Users/mohamed3li/projects/libris_app/lib/features/library/presentation/view/library_view.dart`).
-- **Listened by**:
-  - `LibraryViewBody` (`/Users/mohamed3li/projects/libris_app/lib/features/library/presentation/view/widgets/library_view_body.dart`) via `BlocBuilder<LibraryCubit, LibraryState>` and `context.watch<LibraryCubit>()`.
-- **Called by**:
-  - `LibraryView` upon creation (`..fetchFavoriteBooks()`).
-  - `LibraryViewBody` (Collection filter ChoiceChips, Backup Export/Import dialogs).
-  - `SavedBookCard` (Remove bookmark icon, Move to Collection popup menu, and refresh after returning from Details).
-  - `LibraryViewBody` (Retry button on `CustomErrorWidget`).
+Also: `collectionCounts`, `updateBookProgress` (100% moves to Finished), JSON export/import.
+
+### ExploreCubit `ExploreSuccess`
+
+`books`, `query`, `activeCategory`, `hasMore`, `isLoadingMore`, `loadMoreError`.
 
 ---
 
-## 3. Domain Layer
+## Models
 
-### Repository Interfaces
+### `BookModel` — `lib/core/models/book_model.dart`
 
-#### 1. `HomeRepo`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/home/data/repos/home_repo.dart`
-- **Method Signatures**:
-```dart
-abstract class HomeRepo {
-  Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks();
-  Future<Either<Failure, List<BookModel>>> fetchFilterBooks({
-    required String category,
-  });
-}
-```
+`key`, `title`, `authorName`, `coverUrl`, `firstPublishYear`, `collection`, `addedAt`, `progress`, `language`, `iaId`.
 
-#### 2. `SearchRepo`
-- **Full File Path**: `lib/features/explore/data/repos/search_repo.dart`
-- **Method Signatures**:
-```dart
-abstract class SearchRepo {
-  Future<Either<Failure, List<BookModel>>> searchBooks(
-    String query, {
-    int page = 1,
-    int limit = 20,
-  });
-  Future<Either<Failure, List<BookModel>>> fetchBooksBySubject(
-    String subject, {
-    int page = 1,
-    int limit = 20,
-  });
-  Future<Either<Failure, List<BookModel>>> fetchTrendingBooks({int limit = 50});
-}
-```
+- `fromJson`: Open Library `works` / `docs` (cover via `cover_id` / `cover_i`; empty string if none — no placeholder.com).
+- `fromArchiveJson` / `listFromArchiveResponse`: Archive search docs; `key` is `/ia/{identifier}`; cover `https://archive.org/services/img/{id}`.
+- Helpers: `preferEnglishBooks`, `languageCodeFromJson`, `normalizeBookTitle`, `containsArabic`, `archiveReaderUrl`, `isArchiveBook`.
 
-#### 3. `DetailsRepo`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/details/data/repos/details_repo.dart`
-- **Method Signatures**:
-```dart
-abstract class DetailsRepo {
-  Future<Either<Failure, BookDetailModel>> fetchBookDetails(String workKey);
-}
-```
+### `BookDetailModel` — `features/details/data/models/book_detail_model.dart`
 
-#### 4. `FavoritesRepo`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/library/data/repos/favorites_repo.dart`
-- **Method Signatures**:
-```dart
-abstract class FavoritesRepo {
-  List<BookModel> getFavoriteBooks({String? collection});
-  Future<void> addFavoriteBook(BookModel book);
-  Future<void> removeFavoriteBook(String key);
-  bool isBookFavorite(String key);
-  Future<bool> toggleFavoriteBook(BookModel book);
-  Future<void> updateBookCollection(String key, String collection);
-  String exportFavoritesJson();
-  Future<void> importFavoritesJson(String rawJson);
-}
-```
+OL `fromJson` (description string or `{value}`, subjects, ratings, language from work/editions preferring English when present).
+
+`fromArchive` for metadata fallback.
+
+`readUrl` / `downloadUrl` overwritten by the resolved Archive reader URL.
+
+### `OnboardingModel`
+
+Static slides in `OnboardingView`: Discover Great Books / Open Book Pages / Build Your Library.
 
 ---
 
-### Entities & Use Cases Assessment
-- **Entities Status**: **Not found**
-  - *Details*: The codebase does not maintain a segregated `domain/entities/` directory. Domain models and Data models are unified directly within `lib/core/models/book_model.dart`, `lib/features/details/data/models/book_detail_model.dart`, and `lib/features/onboarding/data/models/onboarding_model.dart`.
-- **Use Cases Status**: **Not found**
-  - *Details*: The codebase does not use individual Use Case / Interactor classes. Cubits directly inject and interact with the Repository interfaces.
+## Repositories
+
+| Impl | Sources | Behavior |
+| :--- | :--- | :--- |
+| `HomeRepoImpl` | ApiService, Hive | Trending + category search with English param; TTL cache; `clearCache` |
+| `SearchRepoImpl` | ApiService | Merged search; subject + trending stay Open Library |
+| `DetailsRepoImpl` | ApiService | OL details first; Archive reader by English title |
+| `FavoritesRepoImpl` | Hive `kFavoritesBox` | CRUD, collection, progress, JSON backup |
 
 ---
 
-### Failure Hierarchy & Functional Error Flow
+## Local storage
 
-#### Failure Hierarchy Tree
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/core/errors/failure.dart`
+### Hive
 
-```
-                      ┌────────────────────────┐
-                      │    abstract Failure    │
-                      │  (String errMessage)   │
-                      └───────────┬────────────┘
-                                  │
-         ┌────────────────────────┼────────────────────────┐
-         ▼                        ▼                        ▼
-┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  ServerFailure   │    │  FormatFailure   │    │   CacheFailure   │
-└──────────────────┘    └──────────────────┘    └──────────────────┘
-```
+| Box | Keys | Value |
+| :--- | :--- | :--- |
+| `featured_books_box` | `featured_list_eng` | `{timestamp, items}` |
+| `filter_books_box` | `{subject}_eng` | `{timestamp, items}` |
+| `favorites_books_box` | work key | `BookModel.toJson()` including `collection`, `added_at`, `progress` |
 
-#### Code Implementation Details:
-1. `Failure` (Base Class):
-```dart
-abstract class Failure {
-  final String errMessage;
-  const Failure(this.errMessage);
-}
-```
-2. `ServerFailure`:
-   - Contains factory `ServerFailure.fromDioError(DioException dioException)`:
-     - `DioExceptionType.connectionTimeout` -> `'Connection timeout. Please try again.'`
-     - `DioExceptionType.sendTimeout` -> `'Send timeout. Please check your connection.'`
-     - `DioExceptionType.receiveTimeout` -> `'Receive timeout. Please try again later.'`
-     - `DioExceptionType.badCertificate` -> `'Bad certificate error with server.'`
-     - `DioExceptionType.badResponse` -> delegates to `ServerFailure.fromResponse(statusCode, data)`
-     - `DioExceptionType.cancel` -> `'Request to server was canceled.'`
-     - `DioExceptionType.connectionError` -> `'No internet connection. Please check your network.'`
-     - `DioExceptionType.unknown` (with `SocketException`) -> `'No internet connection. Please check your network.'` / `'Unexpected network error. Please try again.'`
-     - `default` -> `'An unexpected error occurred. Please try again.'`
-   - Contains factory `ServerFailure.fromResponse(int? statusCode, dynamic response)`:
-     - `400`, `401`, `403` -> extracts nested `response['error']['message']` if present, else `'Authentication or request error. Please try again.'`
-     - `404` -> `'Requested item not found. Please try again later.'`
-     - `500` -> `'Internal server error. Please try again later.'`
-     - Other status codes -> `'An unexpected server error occurred. Please try again.'`
-3. `FormatFailure`:
-   - Default message: `'Unable to process book data. Please try again.'` (Catches `FormatException` and `TypeError`).
-4. `CacheFailure`:
-   - Default message: `'Failed to load saved offline data.'`
+### SharedPreferences
 
-#### How Errors Flow from Data to Presentation:
-
-```
-[ Data Layer: ApiService / Dio ]
-               │
-               ▼ throws DioException / TypeError / FormatException
-[ Data Layer: RepoImpl (try/catch) ]
-               │
-               ▼ converts to Left(ServerFailure / FormatFailure)
-[ Presentation Layer: Cubit (result.fold) ]
-               │
-               ▼ emits StateFailure(failure.errMessage)
-[ Presentation Layer: BlocBuilder Widget ]
-               │
-               ▼ renders CustomErrorWidget(errMessage, onRetry) or SnackBar
-```
+| Key | Use |
+| :--- | :--- |
+| `is_first_time_user` | Onboarding |
+| `recent_searches` | Max 10 |
+| `theme_mode` | `system` / `light` / `dark` |
 
 ---
 
-## 4. Data Layer
+## Routing & navigation
 
-### Data Models & Serialization
+`lib/core/widgets/router.dart`
 
-#### 1. `BookModel` & `BookResponseModel`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/core/models/book_model.dart`
-- **Fields**:
-  - `final String key;`
-  - `final String title;`
-  - `final String authorName;`
-  - `final String coverUrl;`
-  - `final int? firstPublishYear;`
-  - `final String? collection;`
-- **`BookResponseModel.fromJson(Map<String, dynamic> json)`**:
-  - Checks `json['works'] ?? json['docs'] ?? []` to support both Open Library Search and Trending/Subjects API structures polymorphically.
-- **`BookModel.fromJson(Map<String, dynamic> json)`**:
-  - Cover Image: Extracts `json['cover_id'] ?? json['cover_i']`. If present, constructs `'https://covers.openlibrary.org/b/id/$coverId-L.jpg'`. If explicit `cover_url` exists, uses it; otherwise falls back to `'https://via.placeholder.com/150?text=No+Cover'`.
-  - Author Parsing: Parses `authors` list (extracting `firstAuthor['name']` if map or string representation) or `author_name` list (extracting first item as string). Defaults to `'Unknown Author'`.
-  - Collection: Extracts `json['collection']` as `String?`.
-  - Fallbacks: Title defaults to `'No Title'`, Key defaults to `''`.
-- **`BookModel.toJson()`**:
-```dart
-Map<String, dynamic> toJson() {
-  return {
-    'key': key,
-    'title': title,
-    'author_name': [authorName],
-    'cover_url': coverUrl,
-    'first_publish_year': firstPublishYear,
-    'collection': collection,
-  };
-}
-```
+| Path | View |
+| :--- | :--- |
+| `/` | Splash |
+| `/onboarding` | Onboarding |
+| `/main` | Tabs: Home, Explore, Library (`PageView` with `NeverScrollableScrollPhysics`) |
+| `/details` | `DetailsView` (`extra: BookModel`) |
+| `/settings` | Settings |
 
-#### 2. `BookDetailModel`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/details/data/models/book_detail_model.dart`
-- **Fields**:
-  - `final String key;`
-  - `final String title;`
-  - `final String description;`
-  - `final String primaryCategory;`
-  - `final List<String> subjects;`
-  - `final double averageRating;`
-  - `final int ratingCount;`
-  - `final String readUrl;`
-  - `final String downloadUrl;`
-- **`BookDetailModel.fromJson({required Map<String, dynamic> detailsJson, Map<String, dynamic>? ratingJson})`**:
-  - Link Resolution: Iterates over `detailsJson['links']`. If a link contains `archive.org` or ends with `.pdf`, assigns it to `downloadLink`. Otherwise assigns to `readLink`. Both fall back to `'https://openlibrary.org$fullKey'`.
-  - Description Parsing: Handles `detailsJson['description']` whether it is a raw `String` or an object `{'value': '...'}`. Defaults to `'No description available for this book.'`.
-  - Subjects & Primary Category: Extracts `detailsJson['subjects']` list; assigns first entry to `primaryCategory`, defaulting to `'General'`.
-  - Rating Extraction: Extracts `ratingJson['summary']['average']` (as `double`) and `count` (as `int`). Defaults to `0.0` and `0`.
-- **`toJson`**: Not found (The model is read-only from Open Library API and is not written to local cache in JSON format).
+`MainNavigationView`:
 
-#### 3. `OnboardingModel`
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/onboarding/data/models/onboarding_model.dart`
-- **Fields**:
-  - `final String title;`
-  - `final String subtitle;`
-  - `final String lottiePath;`
-  - `final String badgeText;`
-- **Serialization**: `fromJson` / `toJson` Not found (Static compile-time constant model instantiated in `OnboardingView`).
+- `navigateToExplore()` — Home search icon
+- `navigateToExploreWithQuery(query)` — Home “See All” (`trending_all`)
+
+Bottom nav colors follow `ThemeData`.
+
+Library view does **not** create its own cubit; it uses the root `LibraryCubit`. `FavoriteIconButton` calls that cubit.
+
+Home AppBar: Libris wordmark, search, settings.
 
 ---
 
-### Data Sources & Repository Implementations
+## Theming & settings
 
-| Repository Implementation | Full File Path | Data Source(s) Used | Methods Implemented & Logic |
-| :--- | :--- | :--- | :--- |
-| **`HomeRepoImpl`** | `lib/features/home/data/repos/home_repo_impl.dart` | `ApiService`, `Hive.box(kFeaturedBox)`, `Hive.box(kFilterBox)` | • `fetchFeaturedBooks()`: Calls `apiService.getData("trending/weekly.json?limit=20")`. Saves raw works to `kFeaturedBox` under `'featured_list'`. On network error, reads cached list from Hive box before returning failure.<br>• `fetchFilterBooks({category})`: Calls `apiService.getData("search.json?q=$subject&limit=50")`. Caches raw response in `kFilterBox` under key `subject`. On error, falls back to Hive cached data. |
-| **`SearchRepoImpl`** | `lib/features/explore/data/repos/search_repo_impl.dart` | `ApiService` | • `searchBooks(query, {page, limit})`: Calls `apiService.searchBooks(query, page: page, limit: limit)`.<br>• `fetchBooksBySubject(subject, {page, limit})`: Calls `apiService.fetchBooksBySubject(subject, page: page, limit: limit)`.<br>• `fetchTrendingBooks({limit})`: Calls `apiService.fetchTrendingBooks(limit: limit)`. |
-| **`DetailsRepoImpl`** | `lib/features/details/data/repos/details_repo_impl.dart` | `ApiService` | • `fetchBookDetails(workKey)`: Concurrently calls `apiService.fetchBookDetails(workKey)` and `apiService.fetchBookRating(workKey)`. Merges both responses into `BookDetailModel`. |
-| **`FavoritesRepoImpl`** | `lib/features/library/data/repos/favorites_repo_impl.dart` | `Hive.box(kFavoritesBox)` | • `getFavoriteBooks({collection})`: Iterates over keys in `kFavoritesBox`, deserializes maps via `BookModel.fromJson()`, and filters by `collection` (`'All'`, `'Favorites'`, `'Want to Read'`, `'Finished'`).<br>• `addFavoriteBook(book)`: Puts `book.toJson()` in box under `book.key` with default collection `'Favorites'`.<br>• `removeFavoriteBook(key)`: Deletes key from box.<br>• `isBookFavorite(key)`: Checks `box.containsKey(key)`.<br>• `toggleFavoriteBook(book)`: Adds or removes book dynamically.<br>• `updateBookCollection(key, collection)`: Updates a saved book's collection tag in Hive.<br>• `exportFavoritesJson()`: Exports all saved books formatted as indented JSON.<br>• `importFavoritesJson(rawJson)`: Imports and merges books from a backup JSON string into `kFavoritesBox`. |
+`lib/core/theme/app_theme.dart`
 
----
+- Light: background `#F0EADE`, primary `#765A1F`
+- Dark: background `#1A1610`, primary `#D4B56A`
+- `LibrisTheme` on `BuildContext`: `colors`, `isDark`, `titleColor`, `mutedColor`, `pillColor`
 
-## 5. Local Storage (Hive & SharedPreferences)
+Settings: segmented theme control, clear home cache, clear search history, about (v1.0.0, Open Library attribution).
 
-### Hive Boxes & Data Structures
-
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                                Hive Storage                                │
-├─────────────────────────┬──────────────────────────┬───────────────────────┤
-│    featured_books_box   │     filter_books_box     │  favorites_books_box  │
-│      (kFeaturedBox)     │       (kFilterBox)       │    (kFavoritesBox)    │
-├─────────────────────────┼──────────────────────────┼───────────────────────┤
-│ Key: 'featured_list'    │ Key: <category_slug>     │ Key: <book_work_key>  │
-│ Value: List<dynamic>    │ Value: List<dynamic>     │ Value: Map<String,    │
-│ (Raw works/docs maps)   │ (Raw works/docs maps)    │             dynamic>  │
-│                         │                          │ (Serialized BookModel)│
-└─────────────────────────┴──────────────────────────┴───────────────────────┘
-```
-
-#### Detailed Box Specifications:
-
-1. **`featured_books_box` (`kFeaturedBox`)**:
-   - **Key**: `'featured_list'` (String)
-   - **Stored Value Structure**: `List<dynamic>` (List of Open Library raw book map objects from `data['works'] ?? data['docs']`).
-   - **Purpose**: Offline caching for home screen featured carousel.
-
-2. **`filter_books_box` (`kFilterBox`)**:
-   - **Key**: Category name slug (e.g. `'general'`, `'tech'`, `'fiction'`, `'history'`).
-   - **Stored Value Structure**: `List<dynamic>` (List of Open Library raw book map objects from `data['works'] ?? data['docs']`).
-   - **Purpose**: Offline caching for home screen category filter list view.
-
-3. **`favorites_books_box` (`kFavoritesBox`)**:
-   - **Key**: Book work key (e.g. `'/works/OL82563W'`).
-   - **Stored Value Structure**: `Map<String, dynamic>` (Serialized via `BookModel.toJson()`):
-```json
-{
-  "key": "/works/OL82563W",
-  "title": "Harry Potter and the Sorcerer's Stone",
-  "author_name": ["J.K. Rowling"],
-  "cover_url": "https://covers.openlibrary.org/b/id/10521270-L.jpg",
-  "first_publish_year": 1997,
-  "collection": "Favorites"
-}
-```
-   - **Purpose**: Persistent local storage of user bookmarked/saved books for the Library tab, supporting categorized collections (`Favorites`, `Want to Read`, `Finished`).
-
----
-
-### Hive Constants
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/constants/hive_constants.dart`
-
-```dart
-const String kFeaturedBox = 'featured_books_box';
-const String kFilterBox = 'filter_books_box';
-const String kFavoritesBox = 'favorites_books_box';
-```
-
-- **Initialization in `main.dart`**:
-```dart
-await Hive.initFlutter();
-await Hive.openBox(kFeaturedBox);
-await Hive.openBox(kFilterBox);
-await Hive.openBox(kFavoritesBox);
-```
-
----
-
-### SharedPreferences (Onboarding & Search History)
-
-#### OnboardingService
-- **Full File Path**: `lib/core/services/onboarding_service.dart`
-- **Key**: `_kFirstTimeUserKey = 'is_first_time_user'`
-- **Methods**:
-  - `static Future<bool> isFirstTimeUser()`: Reads boolean flag (defaults to `true`).
-  - `static Future<void> setFirstTimeUserComplete()`: Writes `false` to prevent future onboarding displays on app launch.
-
-#### SearchHistoryService
-- **Full File Path**: `lib/core/services/search_history_service.dart`
-- **Key**: `_recentSearchesKey = 'recent_searches'`
-- **Max Items**: 10
-- **Methods**:
-  - `static Future<List<String>> getRecentSearches()`: Returns stored search queries (newest first).
-  - `static Future<void> saveSearch(String query)`: Saves query if length ≥ 3; deduplicates case-insensitively and prepends to list.
-  - `static Future<void> clearRecentSearches()`: Removes all stored recent searches.
-- **Used by**: `ExploreViewBody` — displays recent searches in `ExploreWelcomeState`, persists queries on successful search via `BlocConsumer` listener, and provides a "Clear" action.
-
----
-
-## 6. Routing & Navigation
-
-### GoRouter Configuration
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/core/widgets/router.dart`
-
-```dart
-import 'package:go_router/go_router.dart';
-import 'package:libris_app/core/models/book_model.dart';
-import 'package:libris_app/features/details/presentation/view/details_view.dart';
-import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
-import 'package:libris_app/features/onboarding/presentation/view/onboarding_view.dart';
-import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
-
-final router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashView(),
-    ),
-    GoRoute(
-      path: '/onboarding',
-      builder: (context, state) => const OnboardingView(),
-    ),
-    GoRoute(
-      path: '/main',
-      builder: (context, state) => const MainNavigationView(),
-    ),
-    GoRoute(
-      path: '/details',
-      builder: (context, state) {
-        final bookModel = state.extra as BookModel?;
-        return DetailsView(bookModel: bookModel);
-      },
-    ),
-  ],
-);
-```
-
-#### Route Mapping Table:
-
-| Route Path | Target View Widget | Target File Full Path | Arguments / Extra Passed | Description & Behavior |
-| :--- | :--- | :--- | :--- | :--- |
-| `'/'` | `SplashView` | `/Users/mohamed3li/projects/libris_app/lib/features/splash/presentation/view/splash_view.dart` | None | Initial startup route. Runs 1.2s logo animation + 1.8s delay, checks `OnboardingService.isFirstTimeUser()`, routes to `'/onboarding'` or `'/main'`. |
-| `'/onboarding'` | `OnboardingView` | `/Users/mohamed3li/projects/libris_app/lib/features/onboarding/presentation/view/onboarding_view.dart` | None | 3-slide introductory carousel. On completion/skip, flags user in `SharedPreferences` and calls `context.go('/main')`. |
-| `'/main'` | `MainNavigationView` | `/Users/mohamed3li/projects/libris_app/lib/features/main/presentation/view/main_navigation_view.dart` | `initialIndex` (optional, defaults to 0) | Core tab container holding `HomeView`, `ExploreView`, and `LibraryView` in a synchronized `PageView`. |
-| `'/details'` | `DetailsView` | `/Users/mohamed3li/projects/libris_app/lib/features/details/presentation/view/details_view.dart` | `state.extra as BookModel?` | Book details view displaying cover, metadata, author, ratings, reviews, and action buttons. |
-
----
-
-### Nested Bottom Navigation Mechanics
-- **Full File Path**: `/Users/mohamed3li/projects/libris_app/lib/features/main/presentation/view/main_navigation_view.dart`
-- **Bottom Navigation Bar Widget Path**: `/Users/mohamed3li/projects/libris_app/lib/core/widgets/custom_bottom_navigation_bar.dart`
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    MainNavigationView                       │
-├─────────────────────────────────────────────────────────────┤
-│  PageView (PageController):                                 │
-│    Index 0: HomeView()                                      │
-│    Index 1: ExploreView(initialQuery: _exploreSearchQuery)  │
-│    Index 2: LibraryView()                                   │
-├─────────────────────────────────────────────────────────────┤
-│  CustomBottomNavigationBar:                                 │
-│    [ 🏠 Home ]        [ 🔍 Explore ]        [ 📖 Library ]  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-#### Navigation Actions & Methods:
-1. **Cross-Tab Deep Query Navigation (`navigateToExploreWithQuery(String query)`)**:
-   - Exposed through static helper `MainNavigationView.of(context)?.navigateToExploreWithQuery(query)`.
-   - Used by `FeaturedBooksSection` ("See All" button) to navigate to the Explore tab (index 1) with query `'trending_all'`.
-2. **Page Switching (`_onTabSelected(int index)`)**:
-   - Changes active index and animates `PageController` using `Curves.easeInOut` over 300ms.
-3. **Keep-Alive & Deep Linking**:
-   - `ExploreViewBody` implements `AutomaticKeepAliveClientMixin` (`wantKeepAlive => true`) to preserve search text, active categories, and scroll positions across bottom navigation tab switches.
-   - `MainNavigationView` passes `initialQuery` to `ExploreView` via `ValueKey(_exploreSearchQuery)` to trigger deep-link searches (e.g. `'trending_all'` from Home "See All").
-   - `FeaturedBooksSection` calls `MainNavigationView.of(context)?.navigateToExploreWithQuery("trending_all")`.
-
-#### Explore Welcome Screen (`ExploreWelcomeState`)
-- **Full File Path**: `lib/features/explore/presentation/view/widgets/explore_welcome_state.dart`
-- **Sections displayed in `ExploreInitial` state**:
-  1. **Recent Searches** — from `SearchHistoryService` (with "Clear" action)
-  2. **Trending Searches** — static suggestions (e.g. "Atomic Habits", "Clean Code", "Dune")
-  3. **Browse Genres** — `ExploreGenresGrid` widget with 10 genre tiles (Fiction, Programming, History, Science, Fantasy, Self-Help, Business, Mystery, Romance, Philosophy)
-  4. **Authors in Your Library** — unique author names extracted from Hive favorites (up to 6)
-
-#### Library Grid Layout & Collection Management
-- **Grid Layout Path**: `lib/features/library/presentation/view/widgets/saved_books_grid_view.dart`
-  - Uses `MasonryGridView.count` from `flutter_staggered_grid_view` (2-column staggered masonry layout) with 14px spacing instead of a fixed-height grid.
-- **Card Actions Path**: `lib/features/library/presentation/view/widgets/saved_book_card.dart`
-  - Displays collection badge (`Favorites`, `Want to Read`, `Finished`).
-  - Provides a `PopupMenuButton` (`Icons.drive_file_move_outline`) to move a book between collections.
-  - Quick-remove bookmark button (`Icons.bookmark_remove_rounded`).
-- **Backup & Restore Modals Path**: `lib/features/library/presentation/view/widgets/library_view_body.dart`
-  - **Export**: Generates indented JSON and provides 1-tap clipboard copy (`Clipboard.setData`).
-  - **Import**: Modal dialog allowing user to paste backup JSON and restore/merge into local Hive storage.
-  - **Collection Filter**: Horizontal `ChoiceChip` list (`All`, `Favorites`, `Want to Read`, `Finished`).
+Library backup: write JSON to a temp file and `SharePlus.instance.share`; import via `FilePicker` (`json`).

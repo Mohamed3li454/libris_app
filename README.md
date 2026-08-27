@@ -4,11 +4,11 @@
 
 **Discover, Explore, and Manage Your Personal Library with Elegance**
 
-A modern, high-performance Flutter application built for seamless book discovery, real-time search, interactive previews, and offline personal library management. Powered by Open Library REST APIs and engineered with Clean Architecture principles.
+A modern Flutter reading companion for book discovery, dual-source search, Archive.org reading, and an offline personal library. Built around a Warm Ivory visual identity with light and dark themes.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.12+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.12+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-765A1F?style=for-the-badge)](https://flutter.dev)
+[![Architecture](https://img.shields.io/badge/Architecture-Feature--First%20Cubit-765A1F?style=for-the-badge)](https://flutter.dev)
 [![State Management](https://img.shields.io/badge/State%20Management-Flutter%20Bloc%20%2F%20Cubit-42A5F5?style=for-the-badge&logo=bloc&logoColor=white)](https://bloclibrary.dev)
 [![Storage](https://img.shields.io/badge/Local%20Storage-Hive-FF6F00?style=for-the-badge)](https://docs.hivedb.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
@@ -17,7 +17,7 @@ A modern, high-performance Flutter application built for seamless book discovery
 
 </div>
 
-## 📖 Table of Contents
+## Table of Contents
 
 - [Overview](#-overview)
 - [Key Features](#-key-features)
@@ -29,186 +29,131 @@ A modern, high-performance Flutter application built for seamless book discovery
 
 ---
 
-## 🌟 Overview
+## Overview
 
-**Libris** is a modern book discovery and library management mobile application. Designed around a warm, vintage-inspired **Warm Ivory** aesthetic (`#F0EADE`), Libris empowers readers to browse trending literature, search millions of titles via the Open Library API with paginated results, view rich book metadata and previews, and save favorite titles locally for offline reading — all backed by recent search history and smart genre discovery.
+**Libris** is a book discovery and personal library app. The Warm Ivory palette (`#F0EADE`) powers a light theme, with a matching dark theme available from Settings.
 
----
-
-## ✨ Key Features
-
-- **🔍 Book Exploration & Search**: Real-time multi-criteria search by title, author, or genre. Built with 400ms input debouncing, minimum 3-character query validation, and paginated results (20 items per page) with infinite scroll and a "Load more" fallback.
-- **🧭 Smart Explore Welcome Screen**: Contextual discovery hub showing recent search history (persisted via `SharedPreferences`), trending topic suggestions (`#` tags), a 10-genre browse grid (`ExploreGenresGrid`), and author recommendations pulled from your saved library.
-- **📚 Comprehensive Book Details**: Deep-dive into metadata including summaries, author credits, publication year, ratings, similar titles, and Open Library links (`url_launcher`). PDF download appears only when a real file is available.
-- **❤️ Personal Library & Collections**: Organize saved books into *Want to Read*, *Reading*, *Finished*, and *Favorites*, with sort options, collection counts, and reading progress.
-- **💾 Library Backup & Restore**: Export a JSON backup via the share sheet, and import a backup file to restore or merge saved books.
-- **🧱 Staggered Masonry Layout**: Saved titles are rendered in an adaptive, 2-column **Masonry grid** layout (`flutter_staggered_grid_view`) with dynamic cover aspect ratios.
-- **🏠 Home-to-Explore Deep Linking**: "See All" on the featured carousel navigates directly to the Explore tab and loads trending books via `MainNavigationView.navigateToExploreWithQuery`.
-- **🚀 Interactive Onboarding Walkthrough**: Engaging multi-screen onboarding guide introducing app features with custom vector Lottie animations (`search_list.json`, `read_icon.json`, `save.json`) and `smooth_page_indicator`, backed by `SharedPreferences` for persistent launch state tracking.
-- **🛡️ Robust Error Handling & Shimmer Feedback**: Centralized error sanitization via `DioFactory` timeouts and `ServerFailure.fromDioError`, paired with smooth skeleton shimmer loading states across all feeds.
+Discovery uses **Open Library** for rich metadata (descriptions, ratings, language, similar titles). Search also queries **Internet Archive** so extra readable copies — including Arabic titles that Open Library often misses — still appear. Details always prefer Open Library. **Read Now** opens the Archive.org book reader in 2-up mode, preferring an English public scan that matches the Open Library title.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Key Features
 
-### **Technology Stack**
+- **Search (Open Library + Archive.org)**: Debounced Explore search (400ms, min 3 characters), pagination, infinite scroll. Results merge Open Library first (richer records) with Archive.org-only titles that are not already on Open Library. English is preferred for Latin queries; Arabic queries are not forced to English.
+- **Explore Welcome Hub**: Recent searches (`SharedPreferences`), trending chips, a 10-genre grid, and authors from the saved library.
+- **Book Details**: Open Library description, ratings, year, language, similar books, and shimmer loading (including Read / Download buttons). Read Now opens `https://archive.org/details/{id}/page/n19/mode/2up` after resolving an English public identifier by title — not a random/foreign `ia` id attached to the work.
+- **Personal Library**: Collections *All*, *Want to Read*, *Reading*, *Finished*, *Favorites*. Sort by recently added, title, or year. Collection counts. Reading progress slider on *Reading* books. Shared `LibraryCubit` so bookmarks from Details refresh the Library tab.
+- **Backup & Restore**: Export JSON via the share sheet (`share_plus` + temp file). Import a `.json` file (`file_picker`).
+- **Home**: Weekly trending carousel (8-hour Hive cache), category chips with English-biased Open Library search, pull-to-refresh, search icon (jumps to Explore), settings icon.
+- **Settings**: System / Light / Dark theme (`ThemeCubit` + SharedPreferences), clear home cache, clear search history, about.
+- **Onboarding**: Three Lottie slides (Discover / Open Book Pages / Library) with accurate copy — no fake in-app PDF reader.
+- **Shimmer & Errors**: Skeleton loading on Home, Explore, Details (including action bar). `ServerFailure.fromDioError` + retry UI. Explore load-more keeps existing results on failure.
+
+---
+
+## Tech Stack & Architecture
+
+### Technology Stack
 
 | Layer | Technology / Package | Purpose |
 | :--- | :--- | :--- |
-| **Framework** | Flutter (SDK `^3.12.2`) | Cross-platform UI development |
-| **Language** | Dart (`^3.12.2`) | Strongly typed application logic |
-| **Architecture** | Feature-first Clean Architecture | Separation of concerns (Data, Domain, Presentation) |
-| **State Management**| `flutter_bloc` / Cubit | Predictable, reactive state management |
-| **Networking** | `dio` & Open Library API | HTTP requests via centralized `DioFactory`, timeout handling, and paginated response parsing |
-| **Local Storage** | `hive` & `hive_flutter` | Fast key-value offline storage for favorites & cache |
-| **Preferences** | `shared_preferences` | Onboarding state, recent search history & app configuration persistence |
-| **Grid Layout** | `flutter_staggered_grid_view` | Masonry-style staggered grid for the saved books library |
-| **Functional Error Handling** | `dartz` | `Either<Failure, T>` functional programming error flow |
-| **Navigation** | `go_router` | Declarative route management and deep-linking |
-| **Animations** | `lottie` | Rich vector JSON animations for interactive onboarding |
-| **UI Components** | `smooth_page_indicator`, `shimmer` | Page indicators and visual shimmer loading feedback |
-| **External Actions** | `url_launcher` | Opening reader URLs and external PDF download links |
-| **Design System** | Custom Warm Ivory Theme | Light/dark themes, `google_fonts` |
-| **Image Caching** | `cached_network_image` | Efficient image caching with placeholder shimmer support |
+| **Framework** | Flutter (SDK `^3.12.2`) | Cross-platform UI |
+| **Language** | Dart (`^3.12.2`) | Application logic |
+| **Architecture** | Feature-first + Cubit + repository interfaces | UI → Cubit → Repo → ApiService / Hive |
+| **DI** | `ServiceLocator` (`lib/core/di/service_locator.dart`) | Shared `ApiService`, repos |
+| **State** | `flutter_bloc` Cubits | Theme, library, home, explore, details |
+| **Networking** | `dio` | Open Library + Archive.org |
+| **Metadata API** | Open Library | Works, search, ratings, editions, trending |
+| **Reader / extra search** | Internet Archive | Public text search + 2-up reader URLs |
+| **Local Storage** | `hive` / `hive_flutter` | Featured/filter cache (TTL) + saved library |
+| **Preferences** | `shared_preferences` | Onboarding, search history, theme mode |
+| **Backup** | `share_plus`, `file_picker`, `path_provider` | Library JSON export/import |
+| **Navigation** | `go_router` | Splash, onboarding, main, details, settings |
+| **UI** | `google_fonts`, `shimmer`, `lottie`, `cached_network_image`, `flutter_staggered_grid_view` | Theme, loading, onboarding, covers, library grid |
+| **Links** | `url_launcher` | Archive.org reader in an external browser |
+
+Cubits receive repositories from `ServiceLocator` (overridable in tests). `ThemeCubit` and `LibraryCubit` are provided at the app root in `main.dart`.
 
 ---
 
-### **Architecture Overview**
-
-Libris adheres to **Clean Architecture** combined with a **Feature-First** organizational approach:
-
-```
-                  ┌─────────────────────────────────────┐
-                  │          Presentation Layer         │
-                  │  (Views, Widgets, Cubits, States)   │
-                  └──────────────────┬──────────────────┘
-                                     │
-                                     ▼
-                  ┌─────────────────────────────────────┐
-                  │            Domain Layer             │
-                  │ (Entities, Use Cases, Repositories) │
-                  └──────────────────▲──────────────────┘
-                                     │
-                                     ▼
-                  ┌─────────────────────────────────────┐
-                  │             Data Layer              │
-                  │(Models, Data Sources, Repo Impls)   │
-                  └─────────────────────────────────────┘
-```
-
-- **Data Layer**: Manages external data sources (`ApiService`, Open Library REST API) and local database storage (`Hive`). Converts raw JSON responses into strongly-typed Data Models.
-- **Domain Layer**: Contains business rules, repository interfaces (`HomeRepo`, `SearchRepo`, `FavoritesRepo`), and core entities. Uses `dartz` `Either<Failure, T>` return types for safe error propagation.
-- **Presentation Layer**: Built with `flutter_bloc` (Cubit pattern). UI components listen to state streams (`Loading`, `Success`, `Failure`) and trigger user interactions cleanly separated from underlying business logic.
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```text
 lib/
 ├── constants/
-│   ├── api_constants.dart          # API key from environment variables
-│   ├── app_colors.dart             # Palette definitions (Warm Ivory, Accents)
-│   └── hive_constants.dart         # Hive box names and storage keys
+│   ├── app_colors.dart
+│   └── hive_constants.dart
 ├── core/
-│   ├── errors/
-│   │   └── failure.dart            # Failure hierarchy (Server, Cache, Format)
-│   ├── models/
-│   │   └── book_model.dart         # Core Book data model
+│   ├── di/service_locator.dart
+│   ├── errors/failure.dart
+│   ├── models/book_model.dart
 │   ├── services/
-│   │   ├── onboarding_service.dart # Onboarding state persistence
-│   │   └── search_history_service.dart # Recent search history (SharedPreferences)
+│   │   ├── onboarding_service.dart
+│   │   └── search_history_service.dart
+│   ├── theme/app_theme.dart
 │   ├── utils/
-│   │   ├── api_service.dart        # Dio client wrapper & paginated request handler
-│   │   ├── dio_factory.dart        # Centralized Dio instance with timeouts & headers
-│   │   └── styles.dart             # Typography & TextStyle definitions
+│   │   ├── api_service.dart
+│   │   ├── dio_factory.dart
+│   │   └── styles.dart
 │   └── widgets/
 │       ├── custom_bottom_navigation_bar.dart
-│       ├── custom_error_widget.dart# Standardized UI error feedback & retry
-│       └── router.dart             # GoRouter route configurations
+│       ├── custom_error_widget.dart
+│       └── router.dart
 ├── features/
-│   ├── details/                    # Book Details feature module
-│   │   ├── data/
-│   │   │   ├── models/
-│   │   │   └── repos/
-│   │   └── presentation/
-│   │       ├── manager/            # BookDetailsCubit
-│   │       └── view/
-│   ├── explore/                    # Search & Category Exploration feature module
-│   │   ├── data/
-│   │   └── presentation/           # ExploreCubit, pagination, welcome screen widgets
-│   ├── home/                       # Home Feed & Filtered Lists feature module
-│   │   ├── data/
-│   │   └── presentation/           # FeaturedBooksCubit & FilterBooksCubit
-│   ├── library/                    # Favorites & Offline Library feature module
-│   │   ├── data/
-│   │   └── presentation/           # LibraryCubit & Masonry saved-books grid
-│   ├── main/                       # Main Navigation Container view
-│   ├── onboarding/                 # First-Time User Experience (FTUE) walkthrough
-│   └── splash/                     # Splash screen initialization
-└── main.dart                       # Application entry point & Hive initialization
+│   ├── details/
+│   ├── explore/
+│   ├── home/
+│   ├── library/
+│   ├── main/
+│   ├── onboarding/
+│   ├── settings/
+│   └── splash/
+└── main.dart
 test/
-├── fetch_featured_test.dart        # Featured books repository integration test
-├── onboarding_test.dart            # Onboarding service unit test
-├── search_history_service_test.dart# Search history persistence unit test
-└── widget_test.dart                # Default Flutter widget smoke test
+├── onboarding_test.dart
+├── search_history_service_test.dart
+└── widget_test.dart
 ```
+
+Android application id: `com.mohamed.libris` (INTERNET permission in the main manifest). iOS display name: Libris.
 
 ---
 
-## 🛡️ Error Handling Architecture
-
-Libris utilizes a centralized, fail-safe error handling pipeline. Exceptions occurring at the network, socket, parsing, or database level are intercepted and mapped into unified `Failure` domain objects before reaching the UI.
+## Error Handling Architecture
 
 ```text
-┌────────────────┐      ┌─────────────────────────┐      ┌───────────────────────┐      ┌──────────────────────┐
-│ DioFactory /   │ ───► │   ServerFailure Factory │ ───► │  Either<Failure, T>   │ ───► │  CustomErrorWidget   │
-│ Socket Error   │      │  Sanitizes Status Codes │      │ (Functional Return)   │      │ (User Retry Button)  │
-└────────────────┘      └─────────────────────────┘      └───────────────────────┘      └──────────────────────┘
+DioException / parse error
+        → ServerFailure / FormatFailure
+        → Either<Failure, T>
+        → Cubit Failure state
+        → CustomErrorWidget (retry)
 ```
 
-### **Failure Class Hierarchy**
-
-- **`ServerFailure`**: Intercepts `DioException` types (Connection Timeout, Bad Certificate, 4xx/5xx responses, No Internet connection) and translates raw HTTP status codes or socket timeouts into clean, human-readable UI notifications.
-- **`CacheFailure`**: Wraps local database storage errors when reading or persisting favorite books in Hive boxes.
-- **`FormatFailure`**: Handles data mapping and JSON deserialization errors gracefully.
+Explore pagination failures emit `ExploreSuccess` with `loadMoreError` so the current list is kept. Library Hive errors surface as `LibraryFailure`.
 
 ---
 
-## 🚀 Getting Started / Installation
+## Getting Started / Installation
 
-### **Prerequisites**
+### Prerequisites
 
-Ensure you have the following installed on your machine:
-- **Flutter SDK**: `>= 3.12.2` ([Installation Guide](https://docs.flutter.dev/get-started/install))
-- **Dart SDK**: Included with Flutter SDK
-- **Git**
+- Flutter SDK `>= 3.12.2`
+- Git
 
-### **Installation Steps**
+### Steps
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/Mohamed3li454/libris_app.git
-    cd libris_app
-    ```
+```bash
+git clone https://github.com/Mohamed3li454/libris_app.git
+cd libris_app
+flutter pub get
+flutter run
+flutter test   # optional
+```
 
-2. **Install Dependencies**:
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run the Application**:
-   ```bash
-   flutter run
-   ```
-
-4. **Run Tests** (optional):
-   ```bash
-   flutter test
-   ```
+No `.env` file is required. Open Library and Archive.org are used without an API key.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
