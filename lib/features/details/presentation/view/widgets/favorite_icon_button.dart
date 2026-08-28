@@ -16,35 +16,37 @@ class FavoriteIconButton extends StatefulWidget {
 class _FavoriteIconButtonState extends State<FavoriteIconButton>
     with SingleTickerProviderStateMixin {
   bool _isSaved = false;
-  late final AnimationController _bounceController;
+  late final AnimationController _controller;
   late final Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
-    _bounceController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 720),
     );
     _scale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 1.22).chain(
-          CurveTween(curve: Curves.easeOut),
-        ),
-        weight: 40,
+        tween: Tween(
+          begin: 1.0,
+          end: 1.85,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 55,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.22, end: 1.0).chain(
-          CurveTween(curve: Curves.easeIn),
-        ),
-        weight: 60,
+        tween: Tween(
+          begin: 1.85,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 45,
       ),
-    ]).animate(_bounceController);
+    ]).animate(_controller);
   }
 
   @override
   void dispose() {
-    _bounceController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -84,16 +86,14 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton>
     setState(() {
       _isSaved = isNowSaved;
     });
-    _bounceController.forward(from: 0);
+    _controller.forward(from: 0);
 
     if (mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isNowSaved
-                ? 'Added to your Library'
-                : 'Removed from your Library',
+            isNowSaved ? 'Added to your Library' : 'Removed from your Library',
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -106,6 +106,9 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton>
     return ScaleTransition(
       scale: _scale,
       child: IconButton(
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         icon: Icon(
           _isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
           size: 28,
