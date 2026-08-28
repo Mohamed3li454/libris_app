@@ -13,8 +13,40 @@ class FavoriteIconButton extends StatefulWidget {
   State<FavoriteIconButton> createState() => _FavoriteIconButtonState();
 }
 
-class _FavoriteIconButtonState extends State<FavoriteIconButton> {
+class _FavoriteIconButtonState extends State<FavoriteIconButton>
+    with SingleTickerProviderStateMixin {
   bool _isSaved = false;
+  late final AnimationController _bounceController;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 1.22).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.22, end: 1.0).chain(
+          CurveTween(curve: Curves.easeIn),
+        ),
+        weight: 60,
+      ),
+    ]).animate(_bounceController);
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -52,6 +84,7 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
     setState(() {
       _isSaved = isNowSaved;
     });
+    _bounceController.forward(from: 0);
 
     if (mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -70,13 +103,16 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        _isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-        size: 28,
-        color: context.colors.primary,
+    return ScaleTransition(
+      scale: _scale,
+      child: IconButton(
+        icon: Icon(
+          _isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+          size: 28,
+          color: context.colors.primary,
+        ),
+        onPressed: _toggleFavorite,
       ),
-      onPressed: _toggleFavorite,
     );
   }
 }

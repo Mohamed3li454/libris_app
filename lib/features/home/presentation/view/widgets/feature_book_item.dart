@@ -29,7 +29,9 @@ class FeatureBookItem extends StatelessWidget {
               ),
             ],
           ),
-          child: ClipRRect(
+          child: Hero(
+            tag: bookModel.coverHeroTag,
+            child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
               imageUrl: bookModel.coverUrl,
@@ -45,6 +47,7 @@ class FeatureBookItem extends StatelessWidget {
                     color: Colors.grey[300],
                     child: const Icon(Icons.error_outline, color: Colors.grey),
                   ),
+            ),
             ),
           ),
         ),

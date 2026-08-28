@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/widgets/fade_slide_in.dart';
 import 'package:libris_app/features/details/presentation/manager/book_details_cubit/book_details_cubit.dart';
 
 class SimilarBooksSection extends StatelessWidget {
@@ -71,7 +72,9 @@ class SimilarBooksSection extends StatelessWidget {
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final book = state.similarBooks[index];
-                    return GestureDetector(
+                    return FadeSlideIn(
+                      index: index,
+                      child: GestureDetector(
                       onTap: () {
                         context.push('/details', extra: book);
                       },
@@ -80,9 +83,11 @@ class SimilarBooksSection extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: AspectRatio(
+                             Hero(
+                               tag: book.coverHeroTag,
+                               child: ClipRRect(
+                               borderRadius: BorderRadius.circular(10),
+                               child: AspectRatio(
                                 aspectRatio: 3 / 4,
                                 child: book.coverUrl.isEmpty
                                     ? ColoredBox(
@@ -103,10 +108,11 @@ class SimilarBooksSection extends StatelessWidget {
                                                 color: context.mutedColor,
                                               ),
                                             ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
+                                       ),
+                               ),
+                               ),
+                             ),
+                             const SizedBox(height: 6),
                             Text(
                               book.title,
                               maxLines: 2,
@@ -120,6 +126,7 @@ class SimilarBooksSection extends StatelessWidget {
                           ],
                         ),
                       ),
+                    ),
                     );
                   },
                 ),

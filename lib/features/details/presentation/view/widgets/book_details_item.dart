@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class BookDetailsItem extends StatelessWidget {
   final String? imageUrl;
+  final String? heroTag;
 
-  const BookDetailsItem({super.key, this.imageUrl});
+  const BookDetailsItem({super.key, this.imageUrl, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,9 @@ class BookDetailsItem extends StatelessWidget {
               ),
             ],
           ),
-          child: ClipRRect(
+          child: Hero(
+            tag: heroTag ?? 'cover-details',
+            child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child:
                 imageUrl != null && imageUrl!.isNotEmpty
@@ -50,6 +53,7 @@ class BookDetailsItem extends StatelessWidget {
                       color: Colors.grey[300],
                       child: const Icon(Icons.book, color: Colors.grey),
                     ),
+            ),
           ),
         ),
       ),

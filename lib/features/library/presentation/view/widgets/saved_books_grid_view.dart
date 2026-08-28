@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:libris_app/core/models/book_model.dart';
+import 'package:libris_app/core/widgets/fade_slide_in.dart';
 import 'package:libris_app/features/library/presentation/view/widgets/saved_book_card.dart';
 
 class SavedBooksGridView extends StatelessWidget {
@@ -24,11 +25,14 @@ class SavedBooksGridView extends StatelessWidget {
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
-        return SavedBookCard(
-          bookModel: book,
-          onCollectionSelected: (collection) {
-            onMoveToCollection?.call(book.key, collection);
-          },
+        return FadeSlideIn(
+          index: index,
+          child: SavedBookCard(
+            bookModel: book,
+            onCollectionSelected: (collection) {
+              onMoveToCollection?.call(book.key, collection);
+            },
+          ),
         );
       },
     );

@@ -32,10 +32,11 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
   Widget build(BuildContext context) {
     return BlocBuilder<FeaturedBooksCubit, FeaturedBooksState>(
       builder: (context, state) {
+        Widget child;
         if (state is FeaturedBooksLoading) {
-          return const FeaturedBooksShimmerLoading();
+          child = const FeaturedBooksShimmerLoading();
         } else if (state is FeaturedBooksSuccess) {
-          return PageView.builder(
+          child = PageView.builder(
             padEnds: false,
             controller: _pageController,
             itemCount: state.books.length,
@@ -68,9 +69,9 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
                 ),
               );
             },
-          );
+            );
         } else if (state is FeaturedBooksFailure) {
-          return CustomErrorWidget(
+          child = CustomErrorWidget(
             errMessage: state.errMessage,
             onRetry: () {
               BlocProvider.of<FeaturedBooksCubit>(
@@ -79,8 +80,18 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
             },
           );
         } else {
-          return const SizedBox();
+          child = const SizedBox();
         }
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: KeyedSubtree(
+            key: ValueKey(state.runtimeType),
+            child: child,
+          ),
+        );
       },
     );
   }

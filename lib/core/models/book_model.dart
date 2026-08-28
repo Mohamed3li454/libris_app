@@ -85,7 +85,13 @@ class BookModel {
   }
 
   bool get isArchiveBook =>
-      key.startsWith('/ia/') || (iaId != null && iaId!.isNotEmpty && !key.contains('/works/'));
+      key.startsWith('/ia/') ||
+      (iaId != null && iaId!.isNotEmpty && !key.contains('/works/'));
+
+  String get coverHeroTag {
+    if (key.isNotEmpty) return 'cover-$key';
+    return 'cover-$title-$authorName';
+  }
 
   factory BookModel.fromArchiveJson(Map<String, dynamic> json) {
     final identifier = json['identifier']?.toString().trim() ?? '';

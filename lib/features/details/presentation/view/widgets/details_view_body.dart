@@ -42,7 +42,10 @@ class DetailsViewBody extends StatelessWidget {
               trailing: FavoriteIconButton(bookModel: bookModel),
             ),
             const SizedBox(height: 8),
-            BookDetailsItem(imageUrl: bookModel?.coverUrl),
+            BookDetailsItem(
+              imageUrl: bookModel?.coverUrl,
+              heroTag: bookModel?.coverHeroTag,
+            ),
             const SizedBox(height: 12),
             BookHeaderInfo(
               title: bookModel?.title ?? 'Book Details',

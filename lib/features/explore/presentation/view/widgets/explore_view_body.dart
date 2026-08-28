@@ -4,6 +4,7 @@ import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/services/search_history_service.dart';
 import 'package:libris_app/core/utils/styles.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
+import 'package:libris_app/core/widgets/fade_slide_in.dart';
 import 'package:libris_app/core/di/service_locator.dart';
 import 'package:libris_app/features/explore/presentation/manager/explore_cubit/explore_cubit.dart';
 import 'package:libris_app/features/explore/presentation/view/widgets/custom_search_text_field.dart';
@@ -323,8 +324,11 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
                                   ),
                                 );
                               }
-                              return FilterBookItem(
-                                bookModel: state.books[index],
+                              return FadeSlideIn(
+                                index: index,
+                                child: FilterBookItem(
+                                  bookModel: state.books[index],
+                                ),
                               );
                             },
                           ),

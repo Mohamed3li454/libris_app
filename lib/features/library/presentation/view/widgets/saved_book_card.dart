@@ -99,7 +99,9 @@ class SavedBookCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
               child: Stack(
                 children: [
-                  ClipRRect(
+                  Hero(
+                    tag: bookModel.coverHeroTag,
+                    child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: AspectRatio(
                       aspectRatio: 3 / 4,
@@ -132,6 +134,7 @@ class SavedBookCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                    ),
                     ),
                   ),
                   Positioned(
@@ -269,10 +272,17 @@ class SavedBookCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          LinearProgressIndicator(
-                            value: progress / 100,
-                            minHeight: 6,
-                            borderRadius: BorderRadius.circular(8),
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0, end: progress / 100),
+                            duration: const Duration(milliseconds: 420),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, _) {
+                              return LinearProgressIndicator(
+                                value: value,
+                                minHeight: 6,
+                                borderRadius: BorderRadius.circular(8),
+                              );
+                            },
                           ),
                           const SizedBox(height: 4),
                           Text(
