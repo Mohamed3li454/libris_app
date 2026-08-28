@@ -55,9 +55,9 @@ class BookStatsCard extends StatelessWidget {
           }
         }
 
-        String ratingText = rating > 0 ? rating.toStringAsFixed(1) : "N/A";
-        String yearText = publishYear != null ? "$publishYear" : "N/A";
-        String ratingsCountText = ratingCount > 0 ? "$ratingCount" : "OpenLib";
+        final String ratingText = rating > 0 ? rating.toStringAsFixed(1) : "N/A";
+        final String yearText = publishYear != null ? "$publishYear" : "N/A";
+        final String ratingsCountText = ratingCount > 0 ? "$ratingCount" : "OpenLib";
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

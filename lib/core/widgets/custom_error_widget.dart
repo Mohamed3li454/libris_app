@@ -35,10 +35,10 @@ class CustomErrorWidget extends StatelessWidget {
             Text(
               errMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF2C2416),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             if (onRetry != null) ...[

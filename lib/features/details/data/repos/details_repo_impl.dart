@@ -36,7 +36,7 @@ class DetailsRepoImpl implements DetailsRepo {
       }
 
       return left(
-        ServerFailure('Failed to load book details. Please try again.'),
+        const ServerFailure('Failed to load book details. Please try again.'),
       );
     } catch (e) {
       if (e is Failure) return left(e);
@@ -45,7 +45,7 @@ class DetailsRepoImpl implements DetailsRepo {
         return left(const FormatFailure());
       }
       return left(
-        ServerFailure('Failed to load book details. Please try again.'),
+        const ServerFailure('Failed to load book details. Please try again.'),
       );
     }
   }

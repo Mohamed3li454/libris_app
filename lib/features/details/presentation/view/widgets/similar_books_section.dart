@@ -1,3 +1,4 @@
+import 'package:libris_app/core/utils/app_routes.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,7 +77,7 @@ class SimilarBooksSection extends StatelessWidget {
                       index: index,
                       child: GestureDetector(
                       onTap: () {
-                        context.push('/details', extra: book);
+                        context.push(AppRoutes.details, extra: book);
                       },
                       child: SizedBox(
                         width: 96,

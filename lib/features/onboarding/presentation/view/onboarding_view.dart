@@ -1,3 +1,4 @@
+import 'package:libris_app/core/utils/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +51,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   Future<void> _completeOnboarding() async {
     await OnboardingService.setFirstTimeUserComplete();
     if (mounted) {
-      context.go('/main');
+      context.go(AppRoutes.main);
     }
   }
 

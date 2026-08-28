@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:libris_app/core/widgets/shimmer_container.dart';
 
 class FilterBooksShimmerLoading extends StatelessWidget {
   const FilterBooksShimmerLoading({super.key});
@@ -16,48 +17,33 @@ class FilterBooksShimmerLoading extends StatelessWidget {
               child: Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
                 highlightColor: Colors.grey[100]!,
-                child: Row(
+                child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
+                    ShimmerContainer(
                       height: 120,
                       width: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      borderRadius: 12,
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
+                          ShimmerContainer(
                             height: 16,
                             width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Container(
+                          SizedBox(height: 8),
+                          ShimmerContainer(
                             height: 14,
                             width: 130,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
                           ),
-                          const SizedBox(height: 12),
-                          Container(
+                          SizedBox(height: 12),
+                          ShimmerContainer(
                             height: 14,
                             width: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
                           ),
                         ],
                       ),

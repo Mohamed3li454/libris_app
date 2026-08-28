@@ -50,13 +50,13 @@ class HomeRepoImpl implements HomeRepo {
 
   @override
   Future<Either<Failure, List<BookModel>>> fetchFeaturedBooks() async {
-    var box = Hive.box(kFeaturedBox);
+    final box = Hive.box(kFeaturedBox);
     try {
-      var data = await apiService.getData(
+      final data = await apiService.getData(
         endPoint: "trending/weekly.json?limit=20",
       );
       final bookResponse = BookResponseModel.fromJson(data);
-      List rawList = data['works'] ?? data['docs'] ?? [];
+      final List rawList = data['works'] ?? data['docs'] ?? [];
       await _writeCachedList(box, 'featured_list_eng', rawList);
       return right(bookResponse.books);
     } catch (e) {
@@ -74,7 +74,7 @@ class HomeRepoImpl implements HomeRepo {
       if (e is FormatException || e is TypeError) {
         return left(const FormatFailure());
       }
-      return left(ServerFailure('Failed to load books. Please try again.'));
+      return left(const ServerFailure('Failed to load books. Please try again.'));
     }
   }
 
@@ -82,17 +82,17 @@ class HomeRepoImpl implements HomeRepo {
   Future<Either<Failure, List<BookModel>>> fetchFilterBooks({
     required String category,
   }) async {
-    var box = Hive.box(kFilterBox);
-    String subject = (category.isEmpty || category.toLowerCase() == 'all')
+    final box = Hive.box(kFilterBox);
+    final String subject = (category.isEmpty || category.toLowerCase() == 'all')
         ? 'general'
         : category.toLowerCase();
 
     try {
-      var data = await apiService.getData(
+      final data = await apiService.getData(
         endPoint: "search.json?q=$subject&language=eng&limit=50",
       );
       final bookResponse = BookResponseModel.fromJson(data);
-      List rawList = data['works'] ?? data['docs'] ?? [];
+      final List rawList = data['works'] ?? data['docs'] ?? [];
       await _writeCachedList(box, '${subject}_eng', rawList);
       return right(bookResponse.books);
     } catch (e) {
@@ -110,7 +110,7 @@ class HomeRepoImpl implements HomeRepo {
       if (e is FormatException || e is TypeError) {
         return left(const FormatFailure());
       }
-      return left(ServerFailure('Failed to load books. Please try again.'));
+      return left(const ServerFailure('Failed to load books. Please try again.'));
     }
   }
 

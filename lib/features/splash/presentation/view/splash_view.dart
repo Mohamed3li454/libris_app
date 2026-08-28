@@ -1,3 +1,4 @@
+import 'package:libris_app/core/utils/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -46,9 +47,9 @@ class _SplashViewState extends State<SplashView>
     if (!mounted) return;
 
     if (isFirstTime) {
-      context.go('/onboarding');
+      context.go(AppRoutes.onboarding);
     } else {
-      context.go('/main');
+      context.go(AppRoutes.main);
     }
   }
 

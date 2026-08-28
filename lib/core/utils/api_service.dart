@@ -7,18 +7,24 @@ class ApiService {
 
   ApiService(this._dio);
 
-  Future<Map<String, dynamic>> getData({required String endPoint}) async {
-    Response response = await _dio.get("$baseUrl$endPoint");
+  Future<Map<String, dynamic>> getData({
+    required String endPoint,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final Response response = await _dio.get(
+      "$baseUrl$endPoint",
+      queryParameters: queryParameters,
+    );
     return response.data;
   }
 
   Future<Map<String, dynamic>> fetchBookDetails(String workKey) async {
-    String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
+    final String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
     return await getData(endPoint: "$cleanKey.json");
   }
 
   Future<Map<String, dynamic>> fetchBookRating(String workKey) async {
-    String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
+    final String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
     return await getData(endPoint: "$cleanKey/ratings.json");
   }
 
@@ -26,12 +32,18 @@ class ApiService {
     String workKey, {
     int limit = 20,
   }) async {
-    String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
-    return await getData(endPoint: "$cleanKey/editions.json?limit=$limit");
+    final String cleanKey = workKey.startsWith('/') ? workKey.substring(1) : workKey;
+    return await getData(
+      endPoint: "$cleanKey/editions.json",
+      queryParameters: {'limit': limit},
+    );
   }
 
   Future<Map<String, dynamic>> fetchTrendingBooks({int limit = 50}) async {
-    return await getData(endPoint: "trending/weekly.json?limit=$limit");
+    return await getData(
+      endPoint: "trending/weekly.json",
+      queryParameters: {'limit': limit},
+    );
   }
 
   Future<Map<String, dynamic>> searchBooks(
@@ -39,11 +51,17 @@ class ApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final encodedQuery = Uri.encodeComponent(query);
-    final languageParam = containsArabic(query) ? '' : '&language=eng';
+    final Map<String, dynamic> params = {
+      'q': query,
+      'limit': limit,
+      'page': page,
+    };
+    if (!containsArabic(query)) {
+      params['language'] = 'eng';
+    }
     return await getData(
-      endPoint:
-          "search.json?q=$encodedQuery$languageParam&limit=$limit&page=$page",
+      endPoint: "search.json",
+      queryParameters: params,
     );
   }
 
@@ -74,9 +92,25 @@ class ApiService {
       );
     }
 
-    final url =
-        'https://archive.org/advancedsearch.php?q=${Uri.encodeQueryComponent(search.toString())}&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=year&fl[]=date&fl[]=language&fl[]=description&sort[]=downloads+desc&rows=$limit&page=$page&output=json';
-    final response = await _dio.get(url);
+    final response = await _dio.get(
+      'https://archive.org/advancedsearch.php',
+      queryParameters: {
+        'q': search.toString(),
+        'fl[]': [
+          'identifier',
+          'title',
+          'creator',
+          'year',
+          'date',
+          'language',
+          'description',
+        ],
+        'sort[]': 'downloads desc',
+        'rows': limit,
+        'page': page,
+        'output': 'json',
+      },
+    );
     if (response.data is Map<String, dynamic>) {
       return response.data as Map<String, dynamic>;
     }
@@ -98,10 +132,14 @@ class ApiService {
     int page = 1,
     int limit = 20,
   }) async {
-    final encodedSubject = Uri.encodeComponent('subject:$subject');
     return await getData(
-      endPoint:
-          "search.json?q=$encodedSubject&language=eng&limit=$limit&page=$page",
+      endPoint: "search.json",
+      queryParameters: {
+        'q': 'subject:$subject',
+        'language': 'eng',
+        'limit': limit,
+        'page': page,
+      },
     );
   }
 
@@ -162,9 +200,16 @@ class ApiService {
       );
     }
 
-    final url =
-        'https://archive.org/advancedsearch.php?q=${Uri.encodeQueryComponent(query.toString())}&fl[]=identifier&fl[]=language&sort[]=downloads+desc&rows=10&output=json';
-    final response = await _dio.get(url);
+    final response = await _dio.get(
+      'https://archive.org/advancedsearch.php',
+      queryParameters: {
+        'q': query.toString(),
+        'fl[]': ['identifier', 'language'],
+        'sort[]': 'downloads desc',
+        'rows': 10,
+        'output': 'json',
+      },
+    );
     final docs = response.data is Map
         ? (response.data['response'] is Map
               ? response.data['response']['docs']

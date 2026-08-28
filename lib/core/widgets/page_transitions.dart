@@ -16,11 +16,16 @@ CustomTransitionPage<T> fadeSlidePage<T>({
         curve: Curves.easeOutCubic,
         reverseCurve: Curves.easeInCubic,
       );
+
+      // Adjust slide direction based on text directionality (LTR vs RTL)
+      final isRtl = Directionality.of(context) == TextDirection.rtl;
+      final beginOffset = Offset(isRtl ? -0.04 : 0.04, 0);
+
       return FadeTransition(
         opacity: curved,
         child: SlideTransition(
           position: Tween<Offset>(
-            begin: const Offset(0.04, 0),
+            begin: beginOffset,
             end: Offset.zero,
           ).animate(curved),
           child: child,

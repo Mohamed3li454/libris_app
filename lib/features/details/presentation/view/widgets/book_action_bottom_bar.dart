@@ -37,7 +37,7 @@ class BookActionBottomBar extends StatelessWidget {
 
   String? _openLibraryReadUrl() {
     if (fallbackWorkKey == null || fallbackWorkKey!.isEmpty) return null;
-    String cleanKey = fallbackWorkKey!.startsWith('/')
+    final String cleanKey = fallbackWorkKey!.startsWith('/')
         ? fallbackWorkKey!
         : '/$fallbackWorkKey';
     return 'https://openlibrary.org$cleanKey';

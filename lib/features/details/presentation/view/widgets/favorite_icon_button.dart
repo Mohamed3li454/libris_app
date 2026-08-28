@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/models/book_model.dart';
@@ -86,7 +88,7 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton>
     setState(() {
       _isSaved = isNowSaved;
     });
-    _controller.forward(from: 0);
+    unawaited(_controller.forward(from: 0));
 
     if (mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();

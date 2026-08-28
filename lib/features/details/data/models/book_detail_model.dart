@@ -105,15 +105,15 @@ class BookDetailModel {
     Map<String, dynamic>? ratingJson,
     Map<String, dynamic>? editionsJson,
   }) {
-    String keyStr = detailsJson['key'] ?? '';
-    String fullKey = keyStr.startsWith('/') ? keyStr : '/$keyStr';
-    String openLibraryReadUrl = 'https://openlibrary.org$fullKey';
+    final String keyStr = detailsJson['key'] ?? '';
+    final String fullKey = keyStr.startsWith('/') ? keyStr : '/$keyStr';
+    final String openLibraryReadUrl = 'https://openlibrary.org$fullKey';
 
     String? downloadLink;
     if (detailsJson['links'] != null && detailsJson['links'] is List) {
       for (var l in detailsJson['links']) {
         if (l is Map && l['url'] != null) {
-          String u = l['url'].toString();
+          final String u = l['url'].toString();
           if (u.toLowerCase().endsWith('.pdf')) {
             downloadLink = u;
             break;
@@ -137,7 +137,7 @@ class BookDetailModel {
     if (rawSubjects is List) {
       subjectList = rawSubjects.map((s) => s.toString()).toList();
     }
-    String category = subjectList.isNotEmpty ? subjectList.first : 'General';
+    final String category = subjectList.isNotEmpty ? subjectList.first : 'General';
 
     double avgRating = 0.0;
     int count = 0;

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class DioFactory {
   DioFactory._();
@@ -10,7 +11,16 @@ class DioFactory {
       receiveTimeout: const Duration(seconds: 15),
       headers: {'Accept': 'application/json'},
     ),
-  );
+  )..interceptors.addAll([
+      if (kDebugMode)
+        LogInterceptor(
+          requestBody: false,
+          responseBody: false,
+          requestHeader: false,
+          responseHeader: false,
+          error: true,
+        ),
+    ]);
 
   static Dio get dio => _dio;
 }

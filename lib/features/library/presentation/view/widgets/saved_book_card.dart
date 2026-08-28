@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
+import 'package:libris_app/features/library/presentation/view/widgets/book_notes_dialog.dart';
 
 class SavedBookCard extends StatelessWidget {
   final BookModel bookModel;
@@ -61,6 +62,22 @@ class SavedBookCard extends StatelessWidget {
 
     if (result != null && context.mounted) {
       await context.read<LibraryCubit>().updateBookProgress(
+        bookModel.key,
+        result,
+      );
+    }
+  }
+
+  Future<void> _editNotes(BuildContext context) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => BookNotesDialog(
+        initialNotes: bookModel.notes ?? '',
+      ),
+    );
+
+    if (result != null && context.mounted) {
+      await context.read<LibraryCubit>().updateBookNotes(
         bookModel.key,
         result,
       );
@@ -185,6 +202,26 @@ class SavedBookCard extends StatelessWidget {
                             ),
                             child: const Icon(
                               Icons.drive_file_move_outline,
+                              color: Colors.white,
+                              size: 15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 1),
+                        GestureDetector(
+                          onTap: () => _editNotes(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: (bookModel.notes != null && bookModel.notes!.isNotEmpty)
+                                  ? context.colors.primary.withValues(alpha: 0.8)
+                                  : Colors.black.withValues(alpha: 0.55),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              (bookModel.notes != null && bookModel.notes!.isNotEmpty)
+                                  ? Icons.note_alt_rounded
+                                  : Icons.note_add_outlined,
                               color: Colors.white,
                               size: 15,
                             ),

@@ -28,7 +28,7 @@ class SearchRepoImpl implements SearchRepo {
             .catchError((_) => <BookModel>[]),
       ]);
 
-      var openLibraryBooks = results[0];
+      final openLibraryBooks = results[0];
       var archiveBooks = results[1];
 
       if (archiveBooks.isEmpty) {
@@ -50,7 +50,7 @@ class SearchRepoImpl implements SearchRepo {
       if (e is FormatException || e is TypeError) {
         return left(const FormatFailure());
       }
-      return left(ServerFailure('Search failed. Please try again.'));
+      return left(const ServerFailure('Search failed. Please try again.'));
     }
   }
 
@@ -87,7 +87,7 @@ class SearchRepoImpl implements SearchRepo {
     int limit = 20,
   }) async {
     try {
-      var data = await apiService.fetchBooksBySubject(
+      final data = await apiService.fetchBooksBySubject(
         subject,
         page: page,
         limit: limit,
@@ -101,7 +101,7 @@ class SearchRepoImpl implements SearchRepo {
         return left(const FormatFailure());
       }
       return left(
-        ServerFailure('Failed to load category books. Please try again.'),
+        const ServerFailure('Failed to load category books. Please try again.'),
       );
     }
   }
@@ -111,7 +111,7 @@ class SearchRepoImpl implements SearchRepo {
     int limit = 50,
   }) async {
     try {
-      var data = await apiService.fetchTrendingBooks(limit: limit);
+      final data = await apiService.fetchTrendingBooks(limit: limit);
       final bookResponse = BookResponseModel.fromJson(data);
       return right(bookResponse.books);
     } catch (e) {
@@ -121,7 +121,7 @@ class SearchRepoImpl implements SearchRepo {
         return left(const FormatFailure());
       }
       return left(
-        ServerFailure('Failed to load trending books. Please try again.'),
+        const ServerFailure('Failed to load trending books. Please try again.'),
       );
     }
   }

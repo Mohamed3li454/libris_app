@@ -1,45 +1,52 @@
-import 'package:dio/dio.dart';
+import 'dart:io';
 
-abstract class Failure {
+import 'package:dio/dio.dart';
+import 'package:equatable/equatable.dart';
+
+abstract class Failure extends Equatable {
   final String errMessage;
 
   const Failure(this.errMessage);
+
+  @override
+  List<Object?> get props => [errMessage];
 }
 
 class ServerFailure extends Failure {
-  ServerFailure(super.errMessage);
+  const ServerFailure(super.errMessage);
 
   factory ServerFailure.fromDioError(DioException dioException) {
     switch (dioException.type) {
       case DioExceptionType.connectionTimeout:
-        return ServerFailure('Connection timeout. Please try again.');
+        return const ServerFailure('Connection timeout. Please try again.');
       case DioExceptionType.sendTimeout:
-        return ServerFailure('Send timeout. Please check your connection.');
+        return const ServerFailure('Send timeout. Please check your connection.');
       case DioExceptionType.receiveTimeout:
-        return ServerFailure('Receive timeout. Please try again later.');
+        return const ServerFailure('Receive timeout. Please try again later.');
       case DioExceptionType.badCertificate:
-        return ServerFailure('Bad certificate error with server.');
+        return const ServerFailure('Bad certificate error with server.');
       case DioExceptionType.badResponse:
         return ServerFailure.fromResponse(
           dioException.response?.statusCode,
           dioException.response?.data,
         );
       case DioExceptionType.cancel:
-        return ServerFailure('Request to server was canceled.');
+        return const ServerFailure('Request to server was canceled.');
       case DioExceptionType.connectionError:
-        return ServerFailure(
+        return const ServerFailure(
           'No internet connection. Please check your network.',
         );
       case DioExceptionType.unknown:
-        if (dioException.message != null &&
-            dioException.message!.contains('SocketException')) {
-          return ServerFailure(
+        if (dioException.error is SocketException ||
+            (dioException.message != null &&
+                dioException.message!.contains('SocketException'))) {
+          return const ServerFailure(
             'No internet connection. Please check your network.',
           );
         }
-        return ServerFailure('Unexpected network error. Please try again.');
+        return const ServerFailure('Unexpected network error. Please try again.');
       default:
-        return ServerFailure('An unexpected error occurred. Please try again.');
+        return const ServerFailure('An unexpected error occurred. Please try again.');
     }
   }
 
@@ -50,16 +57,27 @@ class ServerFailure extends Failure {
         if (err is Map && err['message'] != null) {
           return ServerFailure(err['message'].toString());
         }
+        if (err is String) {
+          return ServerFailure(err);
+        }
       }
-      return ServerFailure(
+      return const ServerFailure(
         'Authentication or request error. Please try again.',
       );
     } else if (statusCode == 404) {
-      return ServerFailure('Requested item not found. Please try again later.');
+      return const ServerFailure('Requested item not found. Please try again later.');
+    } else if (statusCode == 408) {
+      return const ServerFailure('Request timeout. Please try again.');
+    } else if (statusCode == 429) {
+      return const ServerFailure('Too many requests. Please try again later.');
     } else if (statusCode == 500) {
-      return ServerFailure('Internal server error. Please try again later.');
+      return const ServerFailure('Internal server error. Please try again later.');
+    } else if (statusCode == 502) {
+      return const ServerFailure('Bad gateway. Please try again later.');
+    } else if (statusCode == 503) {
+      return const ServerFailure('Service unavailable. Please try again later.');
     } else {
-      return ServerFailure(
+      return const ServerFailure(
         'An unexpected server error occurred. Please try again.',
       );
     }

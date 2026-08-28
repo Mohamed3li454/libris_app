@@ -18,7 +18,7 @@ class FilterBooksCubit extends Cubit<FilterBooksState> {
     currentCategory = category;
     emit(FilterBooksLoading());
 
-    var result = await homeRepo.fetchFilterBooks(category: category);
+    final result = await homeRepo.fetchFilterBooks(category: category);
     if (isClosed) return;
 
     result.fold(

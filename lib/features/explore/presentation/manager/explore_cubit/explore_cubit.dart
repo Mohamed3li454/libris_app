@@ -54,7 +54,7 @@ class ExploreCubit extends Cubit<ExploreState> {
     _books = [];
 
     emit(ExploreLoading());
-    var result = await searchRepo.searchBooks(
+    final result = await searchRepo.searchBooks(
       cleanQuery,
       page: _currentPage,
       limit: _pageSize,
@@ -97,7 +97,7 @@ class ExploreCubit extends Cubit<ExploreState> {
     _books = [];
 
     emit(ExploreLoading());
-    var result = await searchRepo.fetchBooksBySubject(
+    final result = await searchRepo.fetchBooksBySubject(
       subject,
       page: _currentPage,
       limit: _pageSize,
@@ -140,7 +140,7 @@ class ExploreCubit extends Cubit<ExploreState> {
     _books = [];
 
     emit(ExploreLoading());
-    var result = await searchRepo.fetchTrendingBooks(limit: limit);
+    final result = await searchRepo.fetchTrendingBooks(limit: limit);
     if (isClosed) return;
 
     result.fold(

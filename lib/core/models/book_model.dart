@@ -1,10 +1,12 @@
+import 'package:equatable/equatable.dart';
+
 class BookResponseModel {
   final List<BookModel> books;
 
   BookResponseModel({required this.books});
 
   factory BookResponseModel.fromJson(Map<String, dynamic> json) {
-    List rawList = json['works'] ?? json['docs'] ?? [];
+    final List rawList = json['works'] ?? json['docs'] ?? [];
     return BookResponseModel(
       books: preferEnglishBooks(
         rawList
@@ -18,7 +20,7 @@ class BookResponseModel {
   }
 }
 
-class BookModel {
+class BookModel extends Equatable {
   final String key;
   final String title;
   final String authorName;
@@ -29,8 +31,9 @@ class BookModel {
   final int? progress;
   final String? language;
   final String? iaId;
+  final String? notes;
 
-  BookModel({
+  const BookModel({
     required this.key,
     required this.title,
     required this.authorName,
@@ -41,7 +44,11 @@ class BookModel {
     this.progress,
     this.language,
     this.iaId,
+    this.notes,
   });
+
+  @override
+  List<Object?> get props => [key, title, authorName, coverUrl, firstPublishYear, collection, addedAt, progress, language, iaId, notes];
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
     final int? coverId = json['cover_id'] ?? json['cover_i'];
@@ -52,16 +59,21 @@ class BookModel {
             : '');
 
     String author = 'Unknown Author';
-    if (json['authors'] != null && (json['authors'] as List).isNotEmpty) {
-      final firstAuthor = (json['authors'] as List).first;
+    final rawAuthors = json['authors'];
+    final rawAuthorName = json['author_name'];
+    if (rawAuthors is List && rawAuthors.isNotEmpty) {
+      final firstAuthor = rawAuthors.first;
       if (firstAuthor is Map) {
-        author = firstAuthor['name'] ?? 'Unknown Author';
+        author = firstAuthor['name']?.toString() ?? 'Unknown Author';
       } else {
         author = firstAuthor.toString();
       }
-    } else if (json['author_name'] != null &&
-        (json['author_name'] as List).isNotEmpty) {
-      author = (json['author_name'] as List).first.toString();
+    } else if (rawAuthorName is List && rawAuthorName.isNotEmpty) {
+      author = rawAuthorName.first.toString();
+    } else if (rawAuthors is String && rawAuthors.isNotEmpty) {
+      author = rawAuthors;
+    } else if (rawAuthorName is String && rawAuthorName.isNotEmpty) {
+      author = rawAuthorName;
     }
 
     return BookModel(
@@ -81,6 +93,7 @@ class BookModel {
           : int.tryParse('${json['progress'] ?? ''}'),
       language: languageCodeFromJson(json['language'] ?? json['languages']),
       iaId: iaIdFromJson(json['ia'] ?? json['ocaid'] ?? json['ia_id']),
+      notes: json['notes'] as String?,
     );
   }
 
@@ -150,6 +163,7 @@ class BookModel {
     int? progress,
     String? language,
     String? iaId,
+    String? notes,
   }) {
     return BookModel(
       key: key ?? this.key,
@@ -162,6 +176,7 @@ class BookModel {
       progress: progress ?? this.progress,
       language: language ?? this.language,
       iaId: iaId ?? this.iaId,
+      notes: notes ?? this.notes,
     );
   }
 
@@ -178,6 +193,7 @@ class BookModel {
       'language': language,
       'ia': iaId,
       'ocaid': iaId,
+      'notes': notes,
     };
   }
 }

@@ -23,7 +23,7 @@ class BookDetailsCubit extends Cubit<BookDetailsState> {
   }) async {
     emit(BookDetailsLoading());
 
-    var result = await detailsRepo.fetchBookDetails(workKey, book: book);
+    final result = await detailsRepo.fetchBookDetails(workKey, book: book);
 
     if (isClosed) return;
 

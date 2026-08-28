@@ -52,8 +52,8 @@ class _FeaturedListViewBuilderState extends State<FeaturedListViewBuilder> {
                     value = (index == 0) ? 0 : 1;
                   }
 
-                  double scale = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
-                  double opacity = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
+                  final double scale = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
+                  final double opacity = (1 - (value.abs() * 0.3)).clamp(0.7, 1.0);
 
                   return Transform.scale(
                     scale: scale,

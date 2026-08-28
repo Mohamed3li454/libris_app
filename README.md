@@ -43,13 +43,15 @@ Metadata (descriptions, ratings, language, similar titles) comes from **Open Lib
 - **🧭 Smart Explore Welcome Screen**: Contextual hub showing recent search history (`SharedPreferences`), trending topic chips, a 10-genre browse grid (`ExploreGenresGrid`), and author recommendations from the saved library.
 - **📚 Comprehensive Book Details**: Open Library overview, author, year, language, ratings, similar titles, and shimmer loading — including skeleton placeholders for the Read / Download action bar. Read Now opens `https://archive.org/details/{identifier}/page/n19/mode/2up`. Direct `/download/` PDF links are not used (they produced HTTP 401).
 - **❤️ Personal Library & Collections**: Organize saved books into *All*, *Want to Read*, *Reading*, *Finished*, and *Favorites*, with live counts, sort (recently added / title / year), and a reading-progress slider on *Reading* titles. A shared `LibraryCubit` keeps bookmarks from Details in sync with the Library tab.
+- **📝 Personal Book Notes & Reviews**: Add, edit, and persist personal notes or reviews for any saved book in your library via an interactive dialog (`BookNotesDialog`). A visual note indicator highlights books with saved notes.
+- **📡 Real-Time Connectivity Monitoring**: Live internet connection tracking powered by `connectivity_plus`. Automatically displays a top animated `OfflineBanner` whenever the device disconnects from the network.
 - **💾 Library Backup & Restore**: Export a formatted JSON backup through the system share sheet (`share_plus` + temp file). Import a `.json` file via `file_picker` and merge into Hive.
 - **🧱 Staggered Masonry Layout**: Saved titles render in an adaptive 2-column masonry grid (`flutter_staggered_grid_view`).
 - **🏠 Home Feed**: Weekly trending carousel (Hive cache, 8-hour TTL), English-biased category chips, pull-to-refresh, a search icon that jumps to Explore, and a settings icon.
 - **⚙️ Settings & Appearance**: System / Light / Dark theme (`ThemeCubit` + SharedPreferences), clear home cache, clear search history, and an About section.
 - **🏠 Home-to-Explore Deep Linking**: "See All" on the featured carousel navigates to Explore and loads trending books via `MainNavigationView.navigateToExploreWithQuery`.
 - **🚀 Interactive Onboarding**: Three Lottie slides (Discover / Open Book Pages / Build Your Library) with accurate copy — the app does not claim an in-app PDF reader. State is persisted with `SharedPreferences`.
-- **🛡️ Robust Error Handling & Shimmer Feedback**: `DioFactory` timeouts and `ServerFailure.fromDioError`, plus skeleton loading across Home, Explore, and Details. Explore load-more failures keep the current list and show a snackbar.
+- **🛡️ Robust Error Handling & Crash Recovery**: Defensive Hive box opening (`_openBoxSafe`) with automatic corruption recovery, enhanced `ServerFailure` (408, 429, 502, 503 status codes + `SocketException` checks), `DioFactory` debug logging, and theme-aware error displays.
 
 ---
 
@@ -64,19 +66,19 @@ Metadata (descriptions, ratings, language, similar titles) comes from **Open Lib
 | **Architecture** | Feature-first + Cubit + repository interfaces | UI → Cubit → Repo → ApiService / Hive |
 | **Dependency Injection** | `ServiceLocator` | Shared `ApiService` and repository instances |
 | **State Management** | `flutter_bloc` / Cubit | Predictable, reactive state management |
-| **Networking** | `dio` | Centralized `DioFactory`, timeouts, JSON parsing |
+| **Networking** | `dio` & `connectivity_plus` | Centralized `DioFactory`, timeouts, connectivity listener |
 | **Metadata API** | Open Library REST API | Works, search, ratings, editions, trending |
 | **Reader / extra search** | Internet Archive | Public text search and 2-up reader URLs |
-| **Local Storage** | `hive` & `hive_flutter` | Offline favorites and home-feed cache |
+| **Local Storage** | `hive` & `hive_flutter` | Offline favorites, notes, and home-feed cache |
 | **Preferences** | `shared_preferences` | Onboarding, recent searches, theme mode |
 | **Backup** | `share_plus`, `file_picker`, `path_provider` | Library JSON export and file import |
 | **Grid Layout** | `flutter_staggered_grid_view` | Masonry grid for the saved library |
-| **Functional Error Handling** | `dartz` | `Either<Failure, T>` error flow |
-| **Navigation** | `go_router` | Declarative routes and extra payloads |
+| **Functional Error Handling** | `dartz` & `equatable` | `Either<Failure, T>` flow and value equality |
+| **Navigation & Routes** | `go_router` & `AppRoutes` | Declarative routes, constants, 404 fallback |
 | **Animations** | `lottie` | Vector animations for onboarding |
-| **UI Components** | `smooth_page_indicator`, `shimmer` | Page indicators and skeleton loading |
+| **UI Components** | `smooth_page_indicator`, `shimmer`, `ShimmerContainer` | Page indicators and shared skeleton loading |
 | **External Actions** | `url_launcher` | Opening Archive.org reader URLs |
-| **Design System** | Custom Warm Ivory theme | Light/dark `ThemeData`, `google_fonts` (Inter) |
+| **Design System** | Centralized `AppColors` & `AppTheme` | Light/dark `ThemeData`, `google_fonts` (Inter) |
 | **Image Caching** | `cached_network_image` | Cover caching with fallbacks |
 
 ### **Architecture Overview**
@@ -103,9 +105,9 @@ Libris uses a **feature-first** layout with Cubits talking to repository interfa
                   └─────────────────────────────────────┘
 ```
 
-- **Presentation**: `flutter_bloc` Cubits emit Loading / Success / Failure (and Empty where relevant). `ThemeCubit` and `LibraryCubit` are provided at the application root.
+- **Presentation**: `flutter_bloc` Cubits emit Loading / Success / Failure (and Empty where relevant). `ThemeCubit`, `LibraryCubit`, and `ConnectivityCubit` are provided at the application root.
 - **Repositories**: Interfaces live next to implementations under each feature’s `data/repos/` folder. Defaults come from `ServiceLocator`.
-- **Data**: `ApiService` talks to Open Library and Archive.org. Hive stores the home cache and the personal library.
+- **Data**: `ApiService` talks to Open Library and Archive.org via Dio `queryParameters`. Hive stores the home cache and personal library with notes.
 
 ---
 
@@ -114,39 +116,49 @@ Libris uses a **feature-first** layout with Cubits talking to repository interfa
 ```text
 lib/
 ├── constants/
-│   ├── app_colors.dart             # Brand palette (Warm Ivory, primary, accent)
+├── app_colors.dart             # Brand palette & semantic tokens
 │   └── hive_constants.dart         # Hive box names
 ├── core/
 │   ├── di/
 │   │   └── service_locator.dart    # ApiService + repository singletons
 │   ├── errors/
-│   │   └── failure.dart            # ServerFailure, FormatFailure, CacheFailure
+│   │   └── failure.dart            # Equatable ServerFailure, FormatFailure, CacheFailure
 │   ├── models/
-│   │   └── book_model.dart         # Shared BookModel + Archive mapping helpers
+│   │   └── book_model.dart         # Equatable BookModel + Archive mapping & notes helpers
 │   ├── services/
+│   │   ├── connectivity_cubit.dart # Real-time network state management
 │   │   ├── onboarding_service.dart
 │   │   └── search_history_service.dart
 │   ├── theme/
-│   │   └── app_theme.dart          # Light/dark ThemeData + LibrisTheme extension
+│   │   └── app_theme.dart          # Light/dark cached ThemeData + LibrisTheme extension
 │   ├── utils/
-│   │   ├── api_service.dart        # Open Library + Archive.org client
-│   │   ├── dio_factory.dart        # Shared Dio instance
+│   │   ├── api_service.dart        # Open Library + Archive.org client (queryParameters)
+│   │   ├── app_routes.dart         # Centralized route path constants
+│   │   ├── dio_factory.dart        # Shared Dio instance + Debug LogInterceptor
 │   │   └── styles.dart             # Inter typography helpers
 │   └── widgets/
 │       ├── custom_bottom_navigation_bar.dart
-│       ├── custom_error_widget.dart
-│       └── router.dart             # GoRouter routes
+│       ├── custom_error_widget.dart# Theme-aware error display
+│       ├── offline_banner.dart     # Top animated offline notification
+│       ├── page_transitions.dart   # RTL-aware page transition animator
+│       ├── router.dart             # GoRouter routes + 404 error handler
+│       └── shimmer_container.dart  # Shared skeleton loading placeholder
 ├── features/
 │   ├── details/                    # OL metadata, similar books, Archive reader
 │   ├── explore/                    # Merged search, subjects, welcome hub
 │   ├── home/                       # Featured carousel + category lists
-│   ├── library/                    # Offline collections, sort, backup
+│   ├── library/                    # Offline collections, sort, notes, backup
 │   ├── main/                       # Tab shell (Home / Explore / Library)
 │   ├── onboarding/                 # First-launch walkthrough
 │   ├── settings/                   # Theme, cache, about
 │   └── splash/                     # Launch screen
-└── main.dart                       # Hive + ServiceLocator + root BlocProviders
+└── main.dart                       # Safe Hive init + ServiceLocator + Root providers
 test/
+├── core/
+│   ├── errors/
+│   │   └── failure_test.dart       # Unit tests for ServerFailure & Dio error mapping
+│   └── models/
+│       └── book_model_test.dart    # Unit tests for BookModel parsing, equality, helpers
 ├── onboarding_test.dart
 ├── search_history_service_test.dart
 └── widget_test.dart
@@ -159,7 +171,7 @@ test/
 
 ## 🛡️ Error Handling Architecture
 
-Libris maps network, socket, and parsing failures into domain `Failure` objects before they reach the UI.
+Libris maps network, socket, parsing, and database failures into domain `Failure` objects before they reach the UI.
 
 ```text
 ┌────────────────┐      ┌─────────────────────────┐      ┌───────────────────────┐      ┌──────────────────────┐
@@ -168,11 +180,12 @@ Libris maps network, socket, and parsing failures into domain `Failure` objects 
 └────────────────┘      └─────────────────────────┘      └───────────────────────┘      └──────────────────────┘
 ```
 
-### **Failure Class Hierarchy**
+### **Failure Class Hierarchy & Persistence Safety**
 
-- **`ServerFailure`**: Maps `DioException` types (timeouts, bad certificate, 4xx/5xx, offline) to readable messages via `ServerFailure.fromDioError`.
+- **`ServerFailure`**: Extends `Equatable`. Maps `DioException` types (timeouts, bad certificate, 4xx/5xx, offline) and HTTP status codes (400, 401, 403, 404, 408, 429, 500, 502, 503) to readable messages. Detects `SocketException` errors safely.
 - **`CacheFailure`**: Reserved for local persistence errors.
 - **`FormatFailure`**: JSON / mapping errors.
+- **`_openBoxSafe` Recovery**: On application launch, Hive box opening is wrapped in corruption recovery logic that automatically deletes corrupted box files from disk and retries, preventing fatal startup crashes.
 
 Explore pagination failures emit `ExploreSuccess` with `loadMoreError` so the current result list is preserved. Library Hive errors emit `LibraryFailure`.
 
@@ -204,7 +217,7 @@ Explore pagination failures emit `ExploreSuccess` with `loadMoreError` so the cu
    flutter run
    ```
 
-4. **Run Tests** (optional):
+4. **Run Unit & Widget Tests**:
    ```bash
    flutter test
    ```

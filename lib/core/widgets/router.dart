@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
+import 'package:libris_app/core/utils/app_routes.dart';
 import 'package:libris_app/core/widgets/page_transitions.dart';
 import 'package:libris_app/features/details/presentation/view/details_view.dart';
 import 'package:libris_app/features/main/presentation/view/main_navigation_view.dart';
@@ -8,28 +10,33 @@ import 'package:libris_app/features/settings/presentation/view/settings_view.dar
 import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
 
 final router = GoRouter(
-  initialLocation: '/',
+  initialLocation: AppRoutes.splash,
+  errorBuilder: (context, state) => const Scaffold(
+    body: Center(
+      child: Text('Page not found'),
+    ),
+  ),
   routes: [
     GoRoute(
-      path: '/',
+      path: AppRoutes.splash,
       builder: (context, state) => const SplashView(),
     ),
     GoRoute(
-      path: '/onboarding',
+      path: AppRoutes.onboarding,
       pageBuilder: (context, state) => fadeSlidePage(
         key: state.pageKey,
         child: const OnboardingView(),
       ),
     ),
     GoRoute(
-      path: '/main',
+      path: AppRoutes.main,
       pageBuilder: (context, state) => fadeSlidePage(
         key: state.pageKey,
         child: const MainNavigationView(),
       ),
     ),
     GoRoute(
-      path: '/details',
+      path: AppRoutes.details,
       pageBuilder: (context, state) {
         final bookModel = state.extra as BookModel?;
         return fadeSlidePage(
@@ -39,7 +46,7 @@ final router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/settings',
+      path: AppRoutes.settings,
       pageBuilder: (context, state) => fadeSlidePage(
         key: state.pageKey,
         child: const SettingsView(),

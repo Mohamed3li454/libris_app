@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:libris_app/core/widgets/shimmer_container.dart';
 
 class FeaturedBooksShimmerLoading extends StatelessWidget {
   const FeaturedBooksShimmerLoading({super.key});
@@ -18,12 +19,7 @@ class FeaturedBooksShimmerLoading extends StatelessWidget {
             child: Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
+              child: const ShimmerContainer(borderRadius: 16),
             ),
           ),
         );
