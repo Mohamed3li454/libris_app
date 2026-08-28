@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 
 class FavoriteIconButton extends StatefulWidget {
@@ -91,14 +92,11 @@ class _FavoriteIconButtonState extends State<FavoriteIconButton>
     unawaited(_controller.forward(from: 0));
 
     if (mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isNowSaved ? 'Added to your Library' : 'Removed from your Library',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
+      await AppDialog.success(
+        context,
+        message: isNowSaved
+            ? 'Added to your Library'
+            : 'Removed from your Library',
       );
     }
   }

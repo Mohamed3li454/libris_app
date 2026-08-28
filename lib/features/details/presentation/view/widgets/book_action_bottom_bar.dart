@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/features/details/presentation/manager/book_details_cubit/book_details_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,19 +18,17 @@ class BookActionBottomBar extends StatelessWidget {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Unable to open link. Please check your browser.'),
-            ),
+          await AppDialog.error(
+            context,
+            message: 'Unable to open link. Please check your browser.',
           );
         }
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to open link. Please check your browser.'),
-          ),
+        await AppDialog.error(
+          context,
+          message: 'Unable to open link. Please check your browser.',
         );
       }
     }
@@ -118,10 +117,9 @@ class BookActionBottomBar extends StatelessWidget {
                         if (readUrl != null && readUrl.isNotEmpty) {
                           _launchURL(context, readUrl);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Reader link not available yet'),
-                            ),
+                          AppDialog.info(
+                            context,
+                            message: 'Reader link not available yet',
                           );
                         }
                       },

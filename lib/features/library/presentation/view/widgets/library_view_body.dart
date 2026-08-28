@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 import 'package:libris_app/features/library/presentation/view/widgets/empty_library_view.dart';
@@ -41,8 +42,9 @@ class _LibraryViewBodyState extends State<LibraryViewBody> {
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not export library backup.')),
+      await AppDialog.error(
+        context,
+        message: 'Could not export library backup.',
       );
     }
   }
@@ -68,13 +70,15 @@ class _LibraryViewBodyState extends State<LibraryViewBody> {
       if (!mounted) return;
       await context.read<LibraryCubit>().importFavoritesJson(content);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Library imported successfully.')),
+      await AppDialog.success(
+        context,
+        message: 'Library imported successfully.',
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid backup file.')),
+      await AppDialog.error(
+        context,
+        message: 'Invalid backup file.',
       );
     }
   }

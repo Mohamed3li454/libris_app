@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/constants/app_colors.dart';
 import 'package:libris_app/core/services/search_history_service.dart';
 import 'package:libris_app/core/utils/styles.dart';
+import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
 import 'package:libris_app/core/widgets/fade_slide_in.dart';
 import 'package:libris_app/core/di/service_locator.dart';
@@ -228,9 +229,9 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
                   if (state is ExploreSuccess &&
                       state.loadMoreError != null &&
                       state.loadMoreError!.isNotEmpty) {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(state.loadMoreError!)),
+                    AppDialog.error(
+                      context,
+                      message: state.loadMoreError!,
                     );
                   }
                 },

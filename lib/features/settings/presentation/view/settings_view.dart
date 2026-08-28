@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libris_app/core/di/service_locator.dart';
 import 'package:libris_app/core/services/search_history_service.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/features/settings/presentation/manager/theme_cubit.dart';
 
 class SettingsView extends StatelessWidget {
@@ -11,16 +12,18 @@ class SettingsView extends StatelessWidget {
   Future<void> _clearCache(BuildContext context) async {
     await ServiceLocator.homeRepo.clearCache();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cached book lists cleared.')),
+    await AppDialog.success(
+      context,
+      message: 'Cached book lists cleared.',
     );
   }
 
   Future<void> _clearSearchHistory(BuildContext context) async {
     await SearchHistoryService.clearRecentSearches();
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Search history cleared.')),
+    await AppDialog.success(
+      context,
+      message: 'Search history cleared.',
     );
   }
 
