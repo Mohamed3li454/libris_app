@@ -52,7 +52,6 @@ dependencies:
   share_plus: ^12.0.1
   file_picker: ^10.3.10
   path_provider: ^2.1.5
-  sole_toast: ^0.3.0
   connectivity_plus: ^6.1.4
 
 dev_dependencies:

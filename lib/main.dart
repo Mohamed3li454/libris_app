@@ -7,7 +7,6 @@ import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/core/widgets/router.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 import 'package:libris_app/features/settings/presentation/manager/theme_cubit.dart';
-import 'package:sole_toast/sole_toast.dart';
 import 'package:libris_app/core/services/connectivity_cubit.dart';
 import 'package:libris_app/core/widgets/offline_banner.dart';
 
@@ -18,14 +17,6 @@ Future<void> main() async {
   await _openBoxSafe(kFilterBox);
   await _openBoxSafe(kFavoritesBox);
   ServiceLocator.init();
-  SoleToast.config = const SoleToastConfig(
-    islandMode: SoleIslandMode.auto,
-    mode: SoleToastMode.dark,
-    bounce: 0.22,
-    displayDuration: Duration(seconds: 2),
-    timings: SoleToastTimings.fast,
-    enableHaptics: true,
-  );
   runApp(const MyApp());
 }
 
@@ -59,27 +50,25 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.dark,
             themeMode: themeMode,
             routerConfig: router,
-            builder: SoleToast.init(
-              builder: (context, child) {
-                return Stack(
-                  children: [
-                    ?child,
-                    BlocBuilder<ConnectivityCubit, ConnectivityState>(
-                      builder: (context, state) {
-                        final isOffline = state is ConnectivityDisconnected;
-                        return AnimatedPositioned(
-                          duration: const Duration(milliseconds: 300),
-                          top: isOffline ? 0 : -100,
-                          left: 0,
-                          right: 0,
-                          child: const OfflineBanner(),
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  ?child,
+                  BlocBuilder<ConnectivityCubit, ConnectivityState>(
+                    builder: (context, state) {
+                      final isOffline = state is ConnectivityDisconnected;
+                      return AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        top: isOffline ? 0 : -100,
+                        left: 0,
+                        right: 0,
+                        child: const OfflineBanner(),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
