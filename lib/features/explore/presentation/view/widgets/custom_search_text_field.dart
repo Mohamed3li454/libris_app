@@ -4,12 +4,14 @@ import 'package:libris_app/constants/app_colors.dart';
 class CustomSearchTextField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onSubmitted;
   final VoidCallback onClear;
 
   const CustomSearchTextField({
     super.key,
     required this.controller,
     required this.onChanged,
+    this.onSubmitted,
     required this.onClear,
   });
 
@@ -23,6 +25,8 @@ class CustomSearchTextField extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        textInputAction: TextInputAction.search,
         style: const TextStyle(
           fontFamily: 'Inter',
           fontSize: 14,

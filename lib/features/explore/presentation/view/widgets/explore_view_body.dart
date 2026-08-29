@@ -213,6 +213,15 @@ class _ExploreViewBodyState extends State<ExploreViewBody>
                   context,
                 ).searchBooksDebounced(value);
               },
+              onSubmitted: (value) {
+                FocusScope.of(context).unfocus();
+                setState(() {
+                  _selectedCategory = null;
+                });
+                BlocProvider.of<ExploreCubit>(
+                  context,
+                ).searchBooks(value);
+              },
               onClear: _clearSearch,
             ),
             const SizedBox(height: 14),

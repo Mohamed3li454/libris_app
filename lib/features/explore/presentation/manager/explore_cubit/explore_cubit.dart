@@ -12,6 +12,7 @@ class ExploreCubit extends Cubit<ExploreState> {
 
   final SearchRepo searchRepo;
   Timer? _debounceTimer;
+  int _activeRequestId = 0;
   List<BookModel> _books = [];
   int _currentPage = 1;
   bool _hasMore = false;
@@ -28,22 +29,27 @@ class ExploreCubit extends Cubit<ExploreState> {
     _debounceTimer?.cancel();
     final cleanQuery = query.trim();
 
-    if (cleanQuery.isEmpty || cleanQuery.length < 3) {
-      if (!isClosed) emit(ExploreInitial());
+    if (cleanQuery.isEmpty || cleanQuery.length < 2) {
+      _activeRequestId++;
+      resetSearch();
       return;
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 650), () {
       searchBooks(cleanQuery);
     });
   }
 
   Future<void> searchBooks(String query) async {
+    _debounceTimer?.cancel();
     final cleanQuery = query.trim();
-    if (cleanQuery.isEmpty || cleanQuery.length < 3) {
-      if (!isClosed) emit(ExploreInitial());
+    if (cleanQuery.isEmpty || cleanQuery.length < 2) {
+      _activeRequestId++;
+      resetSearch();
       return;
     }
+
+    final requestId = ++_activeRequestId;
 
     _mode = ExploreMode.search;
     _lastQuery = cleanQuery;
@@ -59,17 +65,19 @@ class ExploreCubit extends Cubit<ExploreState> {
       page: _currentPage,
       limit: _pageSize,
     );
-    if (isClosed) return;
+    if (isClosed || requestId != _activeRequestId) return;
 
     result.fold(
       (failure) {
-        if (!isClosed) emit(ExploreFailure(failure.errMessage));
+        if (!isClosed && requestId == _activeRequestId) {
+          emit(ExploreFailure(failure.errMessage));
+        }
       },
       (books) {
-        _books = books;
-        _hasMore = books.length >= _pageSize;
-        _currentPage = 2;
-        if (!isClosed) {
+        if (!isClosed && requestId == _activeRequestId) {
+          _books = books;
+          _hasMore = books.length >= _pageSize;
+          _currentPage = 2;
           if (_books.isEmpty) {
             emit(ExploreEmpty(cleanQuery));
           } else {
@@ -88,6 +96,7 @@ class ExploreCubit extends Cubit<ExploreState> {
 
   Future<void> fetchBooksBySubject(String subject) async {
     _debounceTimer?.cancel();
+    final requestId = ++_activeRequestId;
     _mode = ExploreMode.subject;
     _lastSubject = subject;
     _lastQuery = '';
@@ -102,17 +111,19 @@ class ExploreCubit extends Cubit<ExploreState> {
       page: _currentPage,
       limit: _pageSize,
     );
-    if (isClosed) return;
+    if (isClosed || requestId != _activeRequestId) return;
 
     result.fold(
       (failure) {
-        if (!isClosed) emit(ExploreFailure(failure.errMessage));
+        if (!isClosed && requestId == _activeRequestId) {
+          emit(ExploreFailure(failure.errMessage));
+        }
       },
       (books) {
-        _books = books;
-        _hasMore = books.length >= _pageSize;
-        _currentPage = 2;
-        if (!isClosed) {
+        if (!isClosed && requestId == _activeRequestId) {
+          _books = books;
+          _hasMore = books.length >= _pageSize;
+          _currentPage = 2;
           if (_books.isEmpty) {
             emit(ExploreEmpty(subject));
           } else {
@@ -131,6 +142,7 @@ class ExploreCubit extends Cubit<ExploreState> {
 
   Future<void> fetchTrendingBooks({int limit = 50}) async {
     _debounceTimer?.cancel();
+    final requestId = ++_activeRequestId;
     _mode = ExploreMode.trending;
     _lastQuery = '';
     _lastSubject = '';
@@ -141,15 +153,17 @@ class ExploreCubit extends Cubit<ExploreState> {
 
     emit(ExploreLoading());
     final result = await searchRepo.fetchTrendingBooks(limit: limit);
-    if (isClosed) return;
+    if (isClosed || requestId != _activeRequestId) return;
 
     result.fold(
       (failure) {
-        if (!isClosed) emit(ExploreFailure(failure.errMessage));
+        if (!isClosed && requestId == _activeRequestId) {
+          emit(ExploreFailure(failure.errMessage));
+        }
       },
       (books) {
-        _books = books;
-        if (!isClosed) {
+        if (!isClosed && requestId == _activeRequestId) {
+          _books = books;
           if (_books.isEmpty) {
             emit(const ExploreEmpty('Featured Books'));
           } else {
@@ -171,6 +185,7 @@ class ExploreCubit extends Cubit<ExploreState> {
     if (_mode == ExploreMode.none || _mode == ExploreMode.trending) return;
     if (state is! ExploreSuccess) return;
 
+    final requestId = _activeRequestId;
     _isLoadingMore = true;
     final current = state as ExploreSuccess;
     emit(
@@ -195,12 +210,12 @@ class ExploreCubit extends Cubit<ExploreState> {
             limit: _pageSize,
           );
 
-    if (isClosed) return;
+    if (isClosed || requestId != _activeRequestId) return;
 
     result.fold(
       (failure) {
         _isLoadingMore = false;
-        if (!isClosed) {
+        if (!isClosed && requestId == _activeRequestId) {
           emit(
             ExploreSuccess(
               books: _books,
@@ -215,11 +230,11 @@ class ExploreCubit extends Cubit<ExploreState> {
       },
       (newBooks) {
         _isLoadingMore = false;
-        _books = [..._books, ...newBooks];
-        _hasMore = newBooks.length >= _pageSize;
-        _currentPage += 1;
+        if (!isClosed && requestId == _activeRequestId) {
+          _books = [..._books, ...newBooks];
+          _hasMore = newBooks.length >= _pageSize;
+          _currentPage += 1;
 
-        if (!isClosed) {
           emit(
             ExploreSuccess(
               books: _books,
@@ -238,6 +253,7 @@ class ExploreCubit extends Cubit<ExploreState> {
 
   void resetSearch() {
     _debounceTimer?.cancel();
+    _activeRequestId++;
     _books = [];
     _currentPage = 1;
     _hasMore = false;
@@ -251,6 +267,7 @@ class ExploreCubit extends Cubit<ExploreState> {
   @override
   Future<void> close() {
     _debounceTimer?.cancel();
+    _activeRequestId++;
     return super.close();
   }
 }
