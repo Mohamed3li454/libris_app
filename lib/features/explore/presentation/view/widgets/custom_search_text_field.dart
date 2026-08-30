@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
-import 'package:libris_app/core/theme/app_theme.dart';
 
 class CustomSearchTextField extends StatelessWidget {
   final TextEditingController controller;

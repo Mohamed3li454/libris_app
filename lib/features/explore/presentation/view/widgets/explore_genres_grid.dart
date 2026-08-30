@@ -48,7 +48,7 @@ class ExploreGenresGrid extends StatelessWidget {
             child: Ink(
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.lightOutline, width: 1.5),
-                color: const Color(0xFFFCFAF7),
+                color: const Color.fromARGB(210, 246, 245, 243),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Padding(
