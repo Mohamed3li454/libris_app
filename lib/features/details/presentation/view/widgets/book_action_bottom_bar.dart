@@ -5,6 +5,8 @@ import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/features/details/presentation/manager/book_details_cubit/book_details_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import 'package:libris_app/core/utils/app_routes.dart';
 
 class BookActionBottomBar extends StatelessWidget {
   final String? fallbackWorkKey;
@@ -74,76 +76,79 @@ class BookActionBottomBar extends StatelessWidget {
             child: isLoading
                 ? _buildShimmerButtons(context)
                 : Row(
-              children: [
-                if (downloadUrl != null && downloadUrl.isNotEmpty) ...[
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: () => _launchURL(context, downloadUrl!),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.colors.primary.withValues(
-                            alpha: 0.12,
-                          ),
-                          foregroundColor: context.colors.primary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(
-                              color: context.colors.primary.withValues(
-                                alpha: 0.2,
+                    children: [
+                      if (downloadUrl != null && downloadUrl.isNotEmpty) ...[
+                        Expanded(
+                          child: SizedBox(
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  _launchURL(context, downloadUrl!),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: context.colors.primary
+                                    .withValues(alpha: 0.12),
+                                foregroundColor: context.colors.primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(
+                                    color: context.colors.primary.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    width: 1,
+                                  ),
+                                ),
                               ),
-                              width: 1,
+                              child: const Text(
+                                'Download PDF',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        child: const Text(
-                          'Download PDF',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: SizedBox(
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              if (readUrl != null && readUrl.isNotEmpty) {
+                                context.push(
+                                  AppRoutes.bookReader,
+                                  extra: readUrl,
+                                );
+                              } else {
+                                AppDialog.info(
+                                  context,
+                                  message: 'Reader link not available yet',
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.colors.primary,
+                              foregroundColor: context.colors.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: const Icon(Icons.menu_book_rounded, size: 20),
+                            label: const Text(
+                              'Read Now',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (readUrl != null && readUrl.isNotEmpty) {
-                          _launchURL(context, readUrl);
-                        } else {
-                          AppDialog.info(
-                            context,
-                            message: 'Reader link not available yet',
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: context.colors.primary,
-                        foregroundColor: context.colors.onPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      icon: const Icon(Icons.menu_book_rounded, size: 20),
-                      label: const Text(
-                        'Read Now',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         );
       },
@@ -152,8 +157,9 @@ class BookActionBottomBar extends StatelessWidget {
 
   Widget _buildShimmerButtons(BuildContext context) {
     final baseColor = context.isDark ? Colors.grey[700]! : Colors.grey[300]!;
-    final highlightColor =
-        context.isDark ? Colors.grey[500]! : Colors.grey[100]!;
+    final highlightColor = context.isDark
+        ? Colors.grey[500]!
+        : Colors.grey[100]!;
 
     return Shimmer.fromColors(
       baseColor: baseColor,

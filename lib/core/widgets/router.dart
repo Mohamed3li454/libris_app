@@ -8,14 +8,12 @@ import 'package:libris_app/features/main/presentation/view/main_navigation_view.
 import 'package:libris_app/features/onboarding/presentation/view/onboarding_view.dart';
 import 'package:libris_app/features/settings/presentation/view/settings_view.dart';
 import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
+import 'package:libris_app/features/details/presentation/view/book_reader_view.dart';
 
 final router = GoRouter(
   initialLocation: AppRoutes.splash,
-  errorBuilder: (context, state) => const Scaffold(
-    body: Center(
-      child: Text('Page not found'),
-    ),
-  ),
+  errorBuilder: (context, state) =>
+      const Scaffold(body: Center(child: Text('Page not found'))),
   routes: [
     GoRoute(
       path: AppRoutes.splash,
@@ -23,17 +21,13 @@ final router = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.onboarding,
-      pageBuilder: (context, state) => fadeSlidePage(
-        key: state.pageKey,
-        child: const OnboardingView(),
-      ),
+      pageBuilder: (context, state) =>
+          fadeSlidePage(key: state.pageKey, child: const OnboardingView()),
     ),
     GoRoute(
       path: AppRoutes.main,
-      pageBuilder: (context, state) => fadeSlidePage(
-        key: state.pageKey,
-        child: const MainNavigationView(),
-      ),
+      pageBuilder: (context, state) =>
+          fadeSlidePage(key: state.pageKey, child: const MainNavigationView()),
     ),
     GoRoute(
       path: AppRoutes.details,
@@ -47,10 +41,18 @@ final router = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.settings,
-      pageBuilder: (context, state) => fadeSlidePage(
-        key: state.pageKey,
-        child: const SettingsView(),
-      ),
+      pageBuilder: (context, state) =>
+          fadeSlidePage(key: state.pageKey, child: const SettingsView()),
+    ),
+    GoRoute(
+      path: AppRoutes.bookReader,
+      pageBuilder: (context, state) {
+        final url = state.extra as String;
+        return fadeUpFadeRightPage(
+          key: state.pageKey,
+          child: BookReaderView(url: url),
+        );
+      },
     ),
   ],
 );
