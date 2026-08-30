@@ -357,7 +357,7 @@ Details tap
 - **Collections**: `All`, `Want to Read`, `Reading`, `Finished`, `Favorites`
 - **Sort**: `LibrarySort.recent` | `title` | `year`
 - **States**: `Initial`, `Loading`, `Success`, `Empty`, `Failure`
-- **Methods**: `fetchFavoriteBooks`, `toggleFavoriteBook`, `setCollectionFilter`, `setSort`, `moveBookToCollection`, `updateBookProgress`, `updateBookNotes`, `exportFavoritesJson`, `importFavoritesJson`, `removeFavoriteBook`, `isBookFavorite`
+- **Methods**: `fetchFavoriteBooks`, `toggleFavoriteBook`, `setCollectionFilter`, `setSort`, `moveBookToCollection`, `updateBookProgress`, `exportFavoritesJson`, `importFavoritesJson`, `removeFavoriteBook`, `isBookFavorite`
 
 All Cubits check `isClosed` before emitting state after async operations.
 
@@ -372,7 +372,7 @@ All Cubits check `isClosed` before emitting state after async operations.
 | `HomeRepo` | `features/home/data/repos/home_repo.dart` | `fetchFeaturedBooks`, `fetchFilterBooks`, `clearCache` |
 | `SearchRepo` | `features/explore/data/repos/search_repo.dart` | `searchBooks`, `fetchBooksBySubject`, `fetchTrendingBooks` |
 | `DetailsRepo` | `features/details/data/repos/details_repo.dart` | `fetchBookDetails(workKey, {BookModel? book})` |
-| `FavoritesRepo` | `features/library/data/repos/favorites_repo.dart` | get/add/remove/toggle, `isBookFavorite`, `updateBookCollection`, `updateBookProgress`, `updateBookNotes`, export/import JSON |
+| `FavoritesRepo` | `features/library/data/repos/favorites_repo.dart` | get/add/remove/toggle, `isBookFavorite`, `updateBookCollection`, `updateBookProgress`, export/import JSON |
 
 ### Failure Hierarchy — `lib/core/errors/failure.dart`
 
@@ -392,7 +392,7 @@ All Cubits check `isClosed` before emitting state after async operations.
 
 #### 1. `BookModel` — `lib/core/models/book_model.dart`
 
-Extends `Equatable` (`props => [key, title, authorName, coverUrl, firstPublishYear, collection, addedAt, progress, language, iaId, notes]`).
+Extends `Equatable` (`props => [key, title, authorName, coverUrl, firstPublishYear, collection, addedAt, progress, language, iaId]`).
 
 | Field | Type | Notes |
 | :--- | :--- | :--- |
@@ -406,7 +406,6 @@ Extends `Equatable` (`props => [key, title, authorName, coverUrl, firstPublishYe
 | `progress` | `int?` | 0–100 reading percentage |
 | `language` | `String?` | normalized code (`ENG`, `ARA`, …) |
 | `iaId` | `String?` | Archive identifier |
-| `notes` | `String?` | User notes/review text |
 
 `BookModel.fromJson` performs defensive type checks (`is List`, `is String`) on `authors` / `author_name` to prevent `TypeError` exceptions on non-standard API responses.
 
@@ -437,8 +436,7 @@ Boxes are opened via `_openBoxSafe(boxName)` in `main.dart` with automatic recov
   "added_at": 1735689600000,
   "progress": 0,
   "language": "ENG",
-  "ia": null,
-  "notes": "Finished chapter 4, great world-building."
+  "ia": null
 }
 ```
 
@@ -494,4 +492,3 @@ class AppRoutes {
 - **`ShimmerContainer`** (`lib/core/widgets/shimmer_container.dart`): Reusable skeleton loader box with customizable `width`, `height`, and `borderRadius`. Used across `ExploreShimmerLoading`, `FeaturedBooksShimmerLoading`, and `FilterBooksShimmerLoading`.
 - **`CustomErrorWidget`** (`lib/core/widgets/custom_error_widget.dart`): Theme-aware error display using `Theme.of(context).colorScheme.onSurface` for perfect readability in Light and Dark modes.
 - **`OfflineBanner`** (`lib/core/widgets/offline_banner.dart`): Animated top banner displaying `'No internet connection'` during network dropouts.
-- **`BookNotesDialog`** (`lib/features/library/presentation/view/widgets/book_notes_dialog.dart`): Dialog allowing users to view, add, or edit personal notes on saved books.

@@ -43,7 +43,6 @@ Metadata (descriptions, ratings, language, similar titles) comes from **Open Lib
 - **🧭 Smart Explore Welcome Screen**: Contextual hub showing recent search history (`SharedPreferences`), trending topic chips, a 10-genre browse grid (`ExploreGenresGrid`), and author recommendations from the saved library.
 - **📚 Comprehensive Book Details**: Open Library overview, author, year, language, ratings, similar titles, and shimmer loading — including skeleton placeholders for the Read / Download action bar. Read Now opens `https://archive.org/details/{identifier}/page/n19/mode/2up`. Direct `/download/` PDF links are not used (they produced HTTP 401).
 - **❤️ Personal Library & Collections**: Organize saved books into *All*, *Want to Read*, *Reading*, *Finished*, and *Favorites*, with live counts, sort (recently added / title / year), and a reading-progress slider on *Reading* titles. A shared `LibraryCubit` keeps bookmarks from Details in sync with the Library tab.
-- **📝 Personal Book Notes & Reviews**: Add, edit, and persist personal notes or reviews for any saved book in your library via an interactive dialog (`BookNotesDialog`). A visual note indicator highlights books with saved notes.
 - **📡 Real-Time Connectivity Monitoring**: Live internet connection tracking powered by `connectivity_plus`. Automatically displays a top animated `OfflineBanner` whenever the device disconnects from the network.
 - **💾 Library Backup & Restore**: Export a formatted JSON backup through the system share sheet (`share_plus` + temp file). Import a `.json` file via `file_picker` and merge into Hive.
 - **🧱 Staggered Masonry Layout**: Saved titles render in an adaptive 2-column masonry grid (`flutter_staggered_grid_view`).
@@ -69,7 +68,7 @@ Metadata (descriptions, ratings, language, similar titles) comes from **Open Lib
 | **Networking** | `dio` & `connectivity_plus` | Centralized `DioFactory`, timeouts, connectivity listener |
 | **Metadata API** | Open Library REST API | Works, search, ratings, editions, trending |
 | **Reader / extra search** | Internet Archive | Public text search and 2-up reader URLs |
-| **Local Storage** | `hive` & `hive_flutter` | Offline favorites, notes, and home-feed cache |
+| **Local Storage** | `hive` & `hive_flutter` | Offline favorites, collections, and home-feed cache |
 | **Preferences** | `shared_preferences` | Onboarding, recent searches, theme mode |
 | **Backup** | `share_plus`, `file_picker`, `path_provider` | Library JSON export and file import |
 | **Grid Layout** | `flutter_staggered_grid_view` | Masonry grid for the saved library |
@@ -107,7 +106,7 @@ Libris uses a **feature-first** layout with Cubits talking to repository interfa
 
 - **Presentation**: `flutter_bloc` Cubits emit Loading / Success / Failure (and Empty where relevant). `ThemeCubit`, `LibraryCubit`, and `ConnectivityCubit` are provided at the application root.
 - **Repositories**: Interfaces live next to implementations under each feature’s `data/repos/` folder. Defaults come from `ServiceLocator`.
-- **Data**: `ApiService` talks to Open Library and Archive.org via Dio `queryParameters`. Hive stores the home cache and personal library with notes.
+- **Data**: `ApiService` talks to Open Library and Archive.org via Dio `queryParameters`. Hive stores the home cache and personal library.
 
 ---
 
@@ -124,7 +123,7 @@ lib/
 │   ├── errors/
 │   │   └── failure.dart            # Equatable ServerFailure, FormatFailure, CacheFailure
 │   ├── models/
-│   │   └── book_model.dart         # Equatable BookModel + Archive mapping & notes helpers
+│   │   └── book_model.dart         # Equatable BookModel + Archive mapping & serialization
 │   ├── services/
 │   │   ├── connectivity_cubit.dart # Real-time network state management
 │   │   ├── onboarding_service.dart
@@ -147,7 +146,7 @@ lib/
 │   ├── details/                    # OL metadata, similar books, Archive reader
 │   ├── explore/                    # Merged search, subjects, welcome hub
 │   ├── home/                       # Featured carousel + category lists
-│   ├── library/                    # Offline collections, sort, notes, backup
+│   ├── library/                    # Offline collections, sort, backup
 │   ├── main/                       # Tab shell (Home / Explore / Library)
 │   ├── onboarding/                 # First-launch walkthrough
 │   ├── settings/                   # Theme, cache, about

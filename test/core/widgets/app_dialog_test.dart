@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libris_app/core/widgets/app_dialog.dart';
@@ -112,7 +114,9 @@ void main() {
     expect(find.text('Reader link not available yet'), findsOneWidget);
     expect(find.byIcon(Icons.info_outline_rounded), findsOneWidget);
 
-    await AppDialog.dismiss();
-    await tester.pump(const Duration(milliseconds: 300));
+    unawaited(AppDialog.dismiss());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(find.text('Reader link not available yet'), findsNothing);
   });
 }

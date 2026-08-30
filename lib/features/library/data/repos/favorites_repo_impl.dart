@@ -110,19 +110,6 @@ class FavoritesRepoImpl implements FavoritesRepo {
     }
   }
 
-  @override
-  Future<void> updateBookNotes(String key, String notes) async {
-    try {
-      final item = _box.get(key);
-      if (item is Map) {
-        final payload = Map<String, dynamic>.from(item);
-        payload['notes'] = notes;
-        await _box.put(key, payload);
-      }
-    } catch (e) {
-      debugPrint('Error updating notes: $e');
-    }
-  }
 
   @override
   String exportFavoritesJson() {

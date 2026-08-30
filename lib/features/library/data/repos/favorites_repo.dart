@@ -8,7 +8,7 @@ abstract class FavoritesRepo {
   Future<bool> toggleFavoriteBook(BookModel book);
   Future<void> updateBookCollection(String key, String collection);
   Future<void> updateBookProgress(String key, int progress);
-  Future<void> updateBookNotes(String key, String notes);
+
   String exportFavoritesJson();
   Future<void> importFavoritesJson(String rawJson);
 }

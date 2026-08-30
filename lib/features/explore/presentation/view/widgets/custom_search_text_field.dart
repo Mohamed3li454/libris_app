@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:libris_app/constants/app_colors.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
 
 class CustomSearchTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -19,8 +20,9 @@ class CustomSearchTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEBEAE4),
-        borderRadius: BorderRadius.circular(9999),
+        border: Border.all(color: AppColors.lightOutline, width: 1.5),
+        color: const Color.fromARGB(163, 246, 245, 243),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,

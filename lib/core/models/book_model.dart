@@ -31,7 +31,6 @@ class BookModel extends Equatable {
   final int? progress;
   final String? language;
   final String? iaId;
-  final String? notes;
 
   const BookModel({
     required this.key,
@@ -44,11 +43,10 @@ class BookModel extends Equatable {
     this.progress,
     this.language,
     this.iaId,
-    this.notes,
   });
 
   @override
-  List<Object?> get props => [key, title, authorName, coverUrl, firstPublishYear, collection, addedAt, progress, language, iaId, notes];
+  List<Object?> get props => [key, title, authorName, coverUrl, firstPublishYear, collection, addedAt, progress, language, iaId];
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
     final int? coverId = json['cover_id'] ?? json['cover_i'];
@@ -93,7 +91,6 @@ class BookModel extends Equatable {
           : int.tryParse('${json['progress'] ?? ''}'),
       language: languageCodeFromJson(json['language'] ?? json['languages']),
       iaId: iaIdFromJson(json['ia'] ?? json['ocaid'] ?? json['ia_id']),
-      notes: json['notes'] as String?,
     );
   }
 
@@ -163,7 +160,6 @@ class BookModel extends Equatable {
     int? progress,
     String? language,
     String? iaId,
-    String? notes,
   }) {
     return BookModel(
       key: key ?? this.key,
@@ -176,7 +172,6 @@ class BookModel extends Equatable {
       progress: progress ?? this.progress,
       language: language ?? this.language,
       iaId: iaId ?? this.iaId,
-      notes: notes ?? this.notes,
     );
   }
 
@@ -193,7 +188,6 @@ class BookModel extends Equatable {
       'language': language,
       'ia': iaId,
       'ocaid': iaId,
-      'notes': notes,
     };
   }
 }

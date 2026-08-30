@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/models/book_model.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
-import 'package:libris_app/features/library/presentation/view/widgets/book_notes_dialog.dart';
 
 class SavedBookCard extends StatelessWidget {
   final BookModel bookModel;
@@ -29,7 +28,13 @@ class SavedBookCard extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('${value.round()}%'),
+                  Text(
+                    '${value.round()}%',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Slider(
                     value: value,
                     min: 0,
@@ -68,22 +73,6 @@ class SavedBookCard extends StatelessWidget {
     }
   }
 
-  Future<void> _editNotes(BuildContext context) async {
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => BookNotesDialog(
-        initialNotes: bookModel.notes ?? '',
-      ),
-    );
-
-    if (result != null && context.mounted) {
-      await context.read<LibraryCubit>().updateBookNotes(
-        bookModel.key,
-        result,
-      );
-    }
-  }
-
   Future<void> _openDetails(BuildContext context) async {
     await GoRouter.of(context).push('/details', extra: bookModel);
     if (context.mounted) {
@@ -95,254 +84,314 @@ class SavedBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = (bookModel.progress ?? 0).clamp(0, 100);
     final isReading = (bookModel.collection ?? 'Favorites') == 'Reading';
-    final hasNotes =
-        bookModel.notes != null && bookModel.notes!.trim().isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: context.isDark ? 0.35 : 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: context.isDark ? 0.30 : 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-            child: GestureDetector(
-              onTap: () => _openDetails(context),
-              child: Stack(
-                children: [
-                  Hero(
-                    tag: bookModel.coverHeroTag,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: AspectRatio(
-                        aspectRatio: 3 / 4,
-                        child: bookModel.coverUrl.isEmpty
-                            ? Container(
-                                color: context.pillColor,
-                                child: Icon(
-                                  Icons.menu_book_rounded,
-                                  color: context.mutedColor,
-                                  size: 36,
-                                ),
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: bookModel.coverUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  color: context.pillColor,
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    Container(
-                                  color: context.pillColor,
-                                  child: Icon(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _openDetails(context),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cover image with overlaid collection badge and actions menu
+                Stack(
+                  children: [
+                    Hero(
+                      tag: bookModel.coverHeroTag,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AspectRatio(
+                          aspectRatio: 1 / 1.38,
+                          child: Container(
+                            color: context.pillColor,
+                            child: bookModel.coverUrl.isEmpty
+                                ? Icon(
                                     Icons.menu_book_rounded,
                                     color: context.mutedColor,
-                                    size: 36,
+                                    size: 32,
+                                  )
+                                : CachedNetworkImage(
+                                    imageUrl: bookModel.coverUrl,
+                                    fit: BoxFit.fill,
+                                    placeholder: (context, url) => Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: context.colors.primary,
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Icon(
+                                      Icons.menu_book_rounded,
+                                      color: context.mutedColor,
+                                      size: 32,
+                                    ),
                                   ),
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 8,
-                    bottom: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        bookModel.collection ?? 'Favorites',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                PopupMenuButton<String>(
-                  tooltip: 'Move to collection',
-                  padding: EdgeInsets.zero,
-                  onSelected: (value) => onCollectionSelected?.call(value),
-                  itemBuilder: (context) => [
-                    for (final collection in LibraryCubit.movableCollections)
-                      PopupMenuItem(
-                        value: collection,
-                        child: Text(collection),
+                    // Collection badge
+                    Positioned(
+                      left: 6,
+                      bottom: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.70),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          bookModel.collection ?? 'Favorites',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Options menu button (Move to collection / Remove)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: PopupMenuButton<String>(
+                        tooltip: 'Options',
+                        padding: EdgeInsets.zero,
+                        elevation: 6,
+                        constraints: const BoxConstraints(),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        color: context.isDark
+                            ? const Color(0xFF28231A)
+                            : Colors.white,
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.more_vert_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                          onSelected: (value) {
+                            if (value == 'remove') {
+                              context.read<LibraryCubit>().removeFavoriteBook(
+                                bookModel.key,
+                              );
+                            } else {
+                              onCollectionSelected?.call(value);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem<String>(
+                              enabled: false,
+                              height: 26,
+                              child: Text(
+                                'MOVE TO',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.6,
+                                  color: context.mutedColor,
+                                ),
+                              ),
+                            ),
+                            for (final col
+                                in LibraryCubit.movableCollections)
+                              PopupMenuItem<String>(
+                                value: col,
+                                height: 36,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      col ==
+                                              (bookModel.collection ??
+                                                  'Favorites')
+                                          ? Icons.radio_button_checked_rounded
+                                          : Icons
+                                              .radio_button_unchecked_rounded,
+                                      size: 16,
+                                      color: col ==
+                                              (bookModel.collection ??
+                                                  'Favorites')
+                                          ? context.colors.primary
+                                          : context.mutedColor,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      col,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: col ==
+                                                (bookModel.collection ??
+                                                    'Favorites')
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: context.titleColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem<String>(
+                              value: 'remove',
+                              height: 38,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.bookmark_remove_rounded,
+                                    size: 18,
+                                    color: Color(0xFFE53935),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Remove from Library',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFFE53935),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
-                  child: _CardAction(
-                    icon: Icons.drive_file_move_outline,
-                    color: context.colors.primary,
+                ),
+                // Book details
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        bookModel.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: context.titleColor,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        bookModel.authorName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: context.mutedColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      if (isReading)
+                        GestureDetector(
+                          onTap: () => _editProgress(context),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Progress',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: context.mutedColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$progress%',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: context.colors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: progress / 100,
+                                  minHeight: 5,
+                                  backgroundColor: context.pillColor,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    context.colors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 11,
+                              color: context.mutedColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              bookModel.firstPublishYear != null
+                                  ? '${bookModel.firstPublishYear}'
+                                  : 'N/A',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: context.mutedColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
-                ),
-                _CardAction(
-                  icon: hasNotes
-                      ? Icons.note_alt_rounded
-                      : Icons.note_add_outlined,
-                  color: hasNotes
-                      ? context.colors.primary
-                      : context.mutedColor,
-                  onTap: () => _editNotes(context),
-                ),
-                _CardAction(
-                  icon: Icons.bookmark_remove_rounded,
-                  color: const Color(0xFFB42318),
-                  onTap: () {
-                    context.read<LibraryCubit>().removeFavoriteBook(
-                      bookModel.key,
-                    );
-                  },
                 ),
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () => _openDetails(context),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    bookModel.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: context.titleColor,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    bookModel.authorName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.mutedColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_rounded,
-                        size: 12,
-                        color: context.mutedColor,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        bookModel.firstPublishYear != null
-                            ? '${bookModel.firstPublishYear}'
-                            : 'N/A',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: context.mutedColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (isReading) ...[
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => _editProgress(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: progress / 100),
-                            duration: const Duration(milliseconds: 420),
-                            curve: Curves.easeOutCubic,
-                            builder: (context, value, _) {
-                              return LinearProgressIndicator(
-                                value: value,
-                                minHeight: 6,
-                                borderRadius: BorderRadius.circular(8),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$progress% · tap to update',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardAction extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback? onTap;
-
-  const _CardAction({
-    required this.icon,
-    required this.color,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color.withValues(alpha: 0.1),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(icon, size: 18, color: color),
         ),
       ),
     );

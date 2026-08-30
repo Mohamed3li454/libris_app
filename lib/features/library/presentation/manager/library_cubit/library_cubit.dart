@@ -128,12 +128,6 @@ class LibraryCubit extends Cubit<LibraryState> {
     }
   }
 
-  Future<void> updateBookNotes(String key, String notes) async {
-    await favoritesRepo.updateBookNotes(key, notes);
-    if (!isClosed) {
-      fetchFavoriteBooks();
-    }
-  }
 
   String exportFavoritesJson() {
     return favoritesRepo.exportFavoritesJson();

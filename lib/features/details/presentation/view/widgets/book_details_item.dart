@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:shimmer/shimmer.dart';
 
 class BookDetailsItem extends StatelessWidget {
   final String? imageUrl;
@@ -37,10 +39,15 @@ class BookDetailsItem extends StatelessWidget {
                       imageUrl: imageUrl!,
                       fit: BoxFit.cover,
                       placeholder:
-                          (context, url) => Container(
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                          (context, url) => Shimmer.fromColors(
+                            baseColor: context.isDark
+                                ? Colors.grey[700]!
+                                : Colors.grey[300]!,
+                            highlightColor: context.isDark
+                                ? Colors.grey[500]!
+                                : Colors.grey[100]!,
+                            child: Container(
+                              color: Colors.white,
                             ),
                           ),
                       errorWidget:
