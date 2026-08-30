@@ -5,61 +5,25 @@ class GenreItemData {
   final String title;
   final IconData icon;
 
-  const GenreItemData({
-    required this.title,
-    required this.icon,
-  });
+  const GenreItemData({required this.title, required this.icon});
 }
 
 class ExploreGenresGrid extends StatelessWidget {
   final ValueChanged<String> onGenreSelected;
 
-  const ExploreGenresGrid({
-    super.key,
-    required this.onGenreSelected,
-  });
+  const ExploreGenresGrid({super.key, required this.onGenreSelected});
 
   static const List<GenreItemData> genres = [
-    GenreItemData(
-      title: 'Fiction',
-      icon: Icons.auto_stories_rounded,
-    ),
-    GenreItemData(
-      title: 'Programming',
-      icon: Icons.code_rounded,
-    ),
-    GenreItemData(
-      title: 'History',
-      icon: Icons.account_balance_rounded,
-    ),
-    GenreItemData(
-      title: 'Science',
-      icon: Icons.science_rounded,
-    ),
-    GenreItemData(
-      title: 'Fantasy',
-      icon: Icons.auto_fix_high_rounded,
-    ),
-    GenreItemData(
-      title: 'Self-Help',
-      icon: Icons.psychology_rounded,
-    ),
-    GenreItemData(
-      title: 'Business',
-      icon: Icons.trending_up_rounded,
-    ),
-    GenreItemData(
-      title: 'Mystery',
-      icon: Icons.travel_explore_rounded,
-    ),
-    GenreItemData(
-      title: 'Romance',
-      icon: Icons.favorite_rounded,
-    ),
-    GenreItemData(
-      title: 'Philosophy',
-      icon: Icons.lightbulb_rounded,
-    ),
+    GenreItemData(title: 'Fiction', icon: Icons.auto_stories_rounded),
+    GenreItemData(title: 'Programming', icon: Icons.code_rounded),
+    GenreItemData(title: 'History', icon: Icons.account_balance_rounded),
+    GenreItemData(title: 'Science', icon: Icons.science_rounded),
+    GenreItemData(title: 'Fantasy', icon: Icons.auto_fix_high_rounded),
+    GenreItemData(title: 'Self-Help', icon: Icons.psychology_rounded),
+    GenreItemData(title: 'Business', icon: Icons.trending_up_rounded),
+    GenreItemData(title: 'Mystery', icon: Icons.travel_explore_rounded),
+    GenreItemData(title: 'Romance', icon: Icons.favorite_rounded),
+    GenreItemData(title: 'Philosophy', icon: Icons.lightbulb_rounded),
   ];
 
   @override
@@ -83,11 +47,15 @@ class ExploreGenresGrid extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             child: Ink(
               decoration: BoxDecoration(
-                color: const Color(0xFFEBEAE4),
+                border: Border.all(color: AppColors.lightOutline, width: 1.5),
+                color: const Color(0xFFFCFAF7),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Container(
