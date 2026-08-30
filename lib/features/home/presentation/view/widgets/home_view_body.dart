@@ -26,9 +26,7 @@ class HomeViewBody extends StatelessWidget {
 
           await Future.wait([
             featuredCubit.fetchFeaturedBooks(),
-            filterCubit.fetchFilterBooks(
-              category: filterCubit.currentCategory,
-            ),
+            filterCubit.fetchFilterBooks(category: filterCubit.currentCategory),
           ]);
         },
         child: CustomScrollView(
@@ -80,7 +78,7 @@ class HomeViewBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   const Padding(
-                    padding: EdgeInsets.only(left: 20),
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                     child: FilterChipsList(),
                   ),
                   const SizedBox(height: 12),
