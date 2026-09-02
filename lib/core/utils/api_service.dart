@@ -127,6 +127,98 @@ class ApiService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
+  Future<String?> resolveArchivePdfUrl({
+    String? identifier,
+    String? title,
+    String? author,
+  }) async {
+    if (identifier != null && identifier.trim().isNotEmpty) {
+      final url = await _pdfUrlForIdentifier(identifier.trim());
+      if (url != null) return url;
+    }
+
+    final searchTitle = title?.trim() ?? '';
+    if (searchTitle.isEmpty) return null;
+
+    final publicId = await _searchArchiveIdentifier(
+      title: searchTitle,
+      author: author,
+      englishOnly: !containsArabic(searchTitle),
+      publicOnly: true,
+    );
+    if (publicId == null || publicId.isEmpty || publicId == identifier) {
+      return null;
+    }
+    return _pdfUrlForIdentifier(publicId);
+  }
+
+  Future<String?> _pdfUrlForIdentifier(String identifier) async {
+    try {
+      final metadata = await fetchArchiveMetadata(identifier);
+      if (_isArchiveRestricted(metadata)) return null;
+      final filename = _pickArchivePdfFilename(metadata);
+      if (filename == null || filename.isEmpty) return null;
+      return archivePdfDownloadUrl(identifier, filename);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isArchiveRestricted(Map<String, dynamic> metadataJson) {
+    final metadata = metadataJson['metadata'];
+    if (metadata is! Map) return false;
+    final restricted = metadata['access-restricted-item']?.toString().toLowerCase();
+    if (restricted == 'true') return true;
+
+    final rawCollection = metadata['collection'];
+    final collections = <String>[];
+    if (rawCollection is List) {
+      collections.addAll(rawCollection.map((item) => item.toString().toLowerCase()));
+    } else if (rawCollection != null) {
+      collections.add(rawCollection.toString().toLowerCase());
+    }
+    return collections.any(
+      (collection) =>
+          collection == 'inlibrary' || collection == 'printdisabled',
+    );
+  }
+
+  String? _pickArchivePdfFilename(Map<String, dynamic> metadataJson) {
+    final files = metadataJson['files'];
+    if (files is! List) return null;
+
+    final pdfs = <({String name, String format, int size})>[];
+    for (final file in files) {
+      if (file is! Map) continue;
+      final name = file['name']?.toString() ?? '';
+      if (!name.toLowerCase().endsWith('.pdf')) continue;
+      final lowerName = name.toLowerCase();
+      if (lowerName.contains('_encrypted') || lowerName.contains('ia_thumb')) {
+        continue;
+      }
+      final format = file['format']?.toString() ?? '';
+      if (format.toLowerCase().contains('page description')) continue;
+      final size = int.tryParse('${file['size'] ?? 0}') ?? 0;
+      pdfs.add((name: name, format: format, size: size));
+    }
+    if (pdfs.isEmpty) return null;
+
+    int score(({String name, String format, int size}) file) {
+      final format = file.format.toLowerCase();
+      final name = file.name.toLowerCase();
+      var value = 0;
+      if (format == 'text pdf') value += 40;
+      if (format == 'pdf') value += 30;
+      if (format.contains('acrobat')) value += 20;
+      if (name.contains('_text.pdf')) value += 8;
+      if (file.size > 0) value += 2;
+      return value;
+    }
+
+    pdfs.sort((a, b) => score(b).compareTo(score(a)));
+    return pdfs.first.name;
+  }
+
   Future<Map<String, dynamic>> fetchBooksBySubject(
     String subject, {
     int page = 1,

@@ -31,6 +31,7 @@ class DetailsView extends StatelessWidget {
         body: DetailsViewBody(bookModel: bookModel),
         bottomNavigationBar: BookActionBottomBar(
           fallbackWorkKey: bookModel?.key,
+          bookModel: bookModel,
         ),
       ),
     );

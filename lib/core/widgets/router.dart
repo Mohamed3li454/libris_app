@@ -9,6 +9,8 @@ import 'package:libris_app/features/onboarding/presentation/view/onboarding_view
 import 'package:libris_app/features/settings/presentation/view/settings_view.dart';
 import 'package:libris_app/features/splash/presentation/view/splash_view.dart';
 import 'package:libris_app/features/details/presentation/view/book_reader_view.dart';
+import 'package:libris_app/features/downloads/presentation/view/downloads_view.dart';
+import 'package:libris_app/features/downloads/presentation/view/pdf_reader_view.dart';
 
 final router = GoRouter(
   initialLocation: AppRoutes.splash,
@@ -51,6 +53,21 @@ final router = GoRouter(
         return fadeUpFadeRightPage(
           key: state.pageKey,
           child: BookReaderView(url: url),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.downloads,
+      pageBuilder: (context, state) =>
+          fadeSlidePage(key: state.pageKey, child: const DownloadsView()),
+    ),
+    GoRoute(
+      path: AppRoutes.pdfReader,
+      pageBuilder: (context, state) {
+        final args = state.extra as PdfReaderArgs;
+        return fadeUpFadeRightPage(
+          key: state.pageKey,
+          child: PdfReaderView(args: args),
         );
       },
     ),

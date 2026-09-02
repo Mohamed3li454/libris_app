@@ -7,4 +7,6 @@ class AppRoutes {
   static const String details = '/details';
   static const String settings = '/settings';
   static const String bookReader = '/bookReader';
+  static const String downloads = '/downloads';
+  static const String pdfReader = '/pdfReader';
 }

@@ -2,6 +2,9 @@ import 'package:libris_app/core/utils/api_service.dart';
 import 'package:libris_app/core/utils/dio_factory.dart';
 import 'package:libris_app/features/details/data/repos/details_repo.dart';
 import 'package:libris_app/features/details/data/repos/details_repo_impl.dart';
+import 'package:libris_app/features/downloads/data/repos/downloads_repo.dart';
+import 'package:libris_app/features/downloads/data/repos/downloads_repo_impl.dart';
+import 'package:libris_app/features/downloads/data/services/download_service.dart';
 import 'package:libris_app/features/explore/data/repos/search_repo.dart';
 import 'package:libris_app/features/explore/data/repos/search_repo_impl.dart';
 import 'package:libris_app/features/home/data/repos/home_repo.dart';
@@ -17,6 +20,8 @@ class ServiceLocator {
   static late final SearchRepo searchRepo;
   static late final DetailsRepo detailsRepo;
   static late final FavoritesRepo favoritesRepo;
+  static late final DownloadsRepo downloadsRepo;
+  static late final DownloadService downloadService;
 
   static void init() {
     apiService = ApiService(DioFactory.dio);
@@ -24,5 +29,7 @@ class ServiceLocator {
     searchRepo = SearchRepoImpl(apiService: apiService);
     detailsRepo = DetailsRepoImpl(apiService: apiService);
     favoritesRepo = FavoritesRepoImpl();
+    downloadsRepo = DownloadsRepoImpl();
+    downloadService = DownloadService(DioFactory.downloadDio);
   }
 }

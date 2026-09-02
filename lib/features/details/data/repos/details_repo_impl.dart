@@ -86,8 +86,11 @@ class DetailsRepoImpl implements DetailsRepo {
     if (readerUrl != null && readerUrl.isNotEmpty) {
       detailModel = detailModel.copyWith(
         readUrl: readerUrl,
-        downloadUrl: readerUrl,
+        archiveIdentifier:
+            archiveIdentifierFromUrl(readerUrl) ?? book?.iaId,
       );
+    } else if (book?.iaId != null && book!.iaId!.isNotEmpty) {
+      detailModel = detailModel.copyWith(archiveIdentifier: book.iaId);
     }
     return detailModel;
   }
@@ -139,7 +142,7 @@ class DetailsRepoImpl implements DetailsRepo {
       return BookDetailModel.fromArchive(
         identifier: identifier,
         metadataJson: metadata,
-      ).copyWith(readUrl: readerUrl, downloadUrl: readerUrl);
+      ).copyWith(readUrl: readerUrl, archiveIdentifier: identifier);
     } catch (_) {
       return BookDetailModel(
         key: '/ia/$identifier',
@@ -150,8 +153,8 @@ class DetailsRepoImpl implements DetailsRepo {
         averageRating: 0,
         ratingCount: 0,
         readUrl: readerUrl,
-        downloadUrl: readerUrl,
         language: book?.language,
+        archiveIdentifier: identifier,
       );
     }
   }

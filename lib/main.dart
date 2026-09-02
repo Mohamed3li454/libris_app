@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -5,6 +7,7 @@ import 'package:libris_app/constants/hive_constants.dart';
 import 'package:libris_app/core/di/service_locator.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
 import 'package:libris_app/core/widgets/router.dart';
+import 'package:libris_app/features/downloads/presentation/manager/downloads_cubit/downloads_cubit.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 import 'package:libris_app/features/settings/presentation/manager/theme_cubit.dart';
 import 'package:libris_app/core/services/connectivity_cubit.dart';
@@ -16,6 +19,7 @@ Future<void> main() async {
   await _openBoxSafe(kFeaturedBox);
   await _openBoxSafe(kFilterBox);
   await _openBoxSafe(kFavoritesBox);
+  await _openBoxSafe(kDownloadsBox);
   ServiceLocator.init();
   runApp(const MyApp());
 }
@@ -40,6 +44,13 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => LibraryCubit()..fetchFavoriteBooks()),
+        BlocProvider(
+          create: (_) {
+            final cubit = DownloadsCubit();
+            unawaited(cubit.load());
+            return cubit;
+          },
+        ),
         BlocProvider(create: (_) => ConnectivityCubit()..checkConnectivity()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(

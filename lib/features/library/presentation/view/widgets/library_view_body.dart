@@ -5,9 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:libris_app/core/theme/app_theme.dart';
+import 'package:libris_app/core/utils/app_routes.dart';
 import 'package:libris_app/core/widgets/app_dialog.dart';
 import 'package:libris_app/core/widgets/custom_error_widget.dart';
+import 'package:libris_app/features/downloads/presentation/manager/downloads_cubit/downloads_cubit.dart';
 import 'package:libris_app/features/library/presentation/manager/library_cubit/library_cubit.dart';
 import 'package:libris_app/features/library/presentation/view/widgets/empty_library_view.dart';
 import 'package:libris_app/features/library/presentation/view/widgets/saved_books_grid_view.dart';
@@ -117,6 +120,22 @@ class _LibraryViewBodyState extends State<LibraryViewBody> {
                 ),
                 Row(
                   children: [
+                    BlocBuilder<DownloadsCubit, DownloadsState>(
+                      builder: (context, state) {
+                        return IconButton(
+                          tooltip: 'Downloads',
+                          onPressed: () => context.push(AppRoutes.downloads),
+                          icon: Badge(
+                            isLabelVisible: state.activeCount > 0,
+                            label: Text('${state.activeCount}'),
+                            child: Icon(
+                              Icons.download_rounded,
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                     PopupMenuButton<LibrarySort>(
                       tooltip: 'Sort',
                       initialValue: cubit.selectedSort,

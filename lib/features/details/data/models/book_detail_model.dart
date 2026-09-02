@@ -11,6 +11,7 @@ class BookDetailModel {
   final String readUrl;
   final String? downloadUrl;
   final String? language;
+  final String? archiveIdentifier;
 
   BookDetailModel({
     required this.key,
@@ -23,14 +24,21 @@ class BookDetailModel {
     required this.readUrl,
     this.downloadUrl,
     this.language,
+    this.archiveIdentifier,
   });
 
-  bool get hasPdfDownload => downloadUrl != null && downloadUrl!.isNotEmpty;
+  bool get hasDirectPdf =>
+      downloadUrl != null && downloadUrl!.toLowerCase().endsWith('.pdf');
+
+  bool get hasPdfDownload =>
+      hasDirectPdf ||
+      (archiveIdentifier != null && archiveIdentifier!.isNotEmpty);
 
   BookDetailModel copyWith({
     String? readUrl,
     String? downloadUrl,
     String? language,
+    String? archiveIdentifier,
   }) {
     return BookDetailModel(
       key: key,
@@ -43,6 +51,7 @@ class BookDetailModel {
       readUrl: readUrl ?? this.readUrl,
       downloadUrl: downloadUrl ?? this.downloadUrl,
       language: language ?? this.language,
+      archiveIdentifier: archiveIdentifier ?? this.archiveIdentifier,
     );
   }
 
@@ -92,11 +101,12 @@ class BookDetailModel {
       averageRating: 0,
       ratingCount: 0,
       readUrl: readerUrl,
-      downloadUrl: readerUrl,
+      downloadUrl: null,
       language: languageCodeFromJson(
         metadata['language'],
         preferEnglish: false,
       ),
+      archiveIdentifier: identifier,
     );
   }
 

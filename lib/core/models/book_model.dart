@@ -242,6 +242,25 @@ String archiveReaderUrl(String identifier) {
   return 'https://archive.org/details/$identifier/page/n19/mode/2up';
 }
 
+String? archiveIdentifierFromUrl(String? url) {
+  if (url == null || url.isEmpty) return null;
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.host.contains('archive.org')) return null;
+  final segments = uri.pathSegments;
+  for (var i = 0; i < segments.length - 1; i++) {
+    if (segments[i] == 'details' || segments[i] == 'download') {
+      final id = segments[i + 1].trim();
+      return id.isEmpty ? null : id;
+    }
+  }
+  return null;
+}
+
+String archivePdfDownloadUrl(String identifier, String filename) {
+  final encoded = filename.split('/').map(Uri.encodeComponent).join('/');
+  return 'https://archive.org/download/$identifier/$encoded';
+}
+
 String? languageCodeFromJson(dynamic raw, {bool preferEnglish = true}) {
   if (raw == null) return null;
   final items = raw is List ? raw : [raw];

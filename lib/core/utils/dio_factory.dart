@@ -23,4 +23,29 @@ class DioFactory {
     ]);
 
   static Dio get dio => _dio;
+
+  static final Dio _downloadDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(hours: 2),
+      followRedirects: true,
+      maxRedirects: 8,
+      headers: {
+        'Accept': '*/*',
+        'User-Agent': 'LibrisApp/1.0 (https://archive.org)',
+      },
+    ),
+  )..interceptors.addAll([
+      if (kDebugMode)
+        LogInterceptor(
+          requestBody: false,
+          responseBody: false,
+          requestHeader: false,
+          responseHeader: false,
+          error: true,
+        ),
+    ]);
+
+  static Dio get downloadDio => _downloadDio;
 }
