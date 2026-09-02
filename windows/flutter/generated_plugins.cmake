@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
+  pdfx
   share_plus
   url_launcher_windows
 )
