@@ -299,7 +299,7 @@ User Action: Download PDF
 
 User Action: Open Downloaded PDF
      └─ Opens In-App PDF Reader (PdfReaderView)
-         └─ Powered by pdfx (PdfViewPinch + PdfControllerPinch)
+         └─ Powered by pdfx (PdfView + PdfController)
          └─ Remembers last read page via PdfProgressService
          └─ Immersive Full Read Mode (zero margins, edge-to-edge, status/nav bars hidden)
 ```
@@ -497,15 +497,22 @@ class AppRoutes {
 - **Offline & Error Handling**: Custom error placeholder with reconnect retry button.
 
 #### 2. In-App PDF Reader & Full Read Mode (`PdfReaderView`)
-- **Engine**: `pdfx` (`PdfViewPinch` with `PdfControllerPinch`).
+- **Engine**: `pdfx` (`PdfView` with `PdfController` and `PhotoViewGallery`).
+- **High-DPI Razor-Sharp Rendering**: Dynamic scale calculation (2.0x to 3.2x) based on physical device screen width and DPR (`devicePixelRatio`). Renders at high-quality JPEG (92% quality, #ffffff background) to eliminate all blurriness and pixelation.
+- **Dual Reading Modes**:
+  - **Horizontal Page Flip (تقليب أفقي)**: Natural book reading experience with page snapping and 60/120 FPS hardware-accelerated transitions.
+  - **Vertical Continuous Scroll (تمرير رأسي)**: Smooth document/webtoon style reading with snapping.
+  - Quick-switch toggle button directly in the reader toolbar.
+- **Pinch-To-Zoom & Pan**: `PhotoViewGalleryPageOptions` with 1.0x to 3.5x scale and `FilterQuality.high`.
 - **Progress Persistence**: `PdfProgressService` automatically restores and debounces-saves page progress.
 - **Navigation**: "Go to page" numeric input dialog.
 - **Full Read Mode (وضع القراءة الكاملة)**:
-  - **Edge-to-edge pages**: `padding: 0`, 0 top system inset, no drop shadows. Consecutive pages fill 100% width and stack seamlessly.
+  - **Edge-to-edge pages**: 0 top system inset, distraction-free canvas background.
   - **System Immersive**: `SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky)` completely hides status bar and navigation pill.
-  - **Distraction-Free UX**: Toolbar auto-slides out of view. Tapping anywhere toggles the toolbar back on.
+  - **Distraction-Free UX**: Toolbar auto-slides out of view. Tapping anywhere toggles the toolbar back on cleanly via `onTapUp`.
   - **PopScope Guard**: Android back gesture gracefully exits Full Read Mode first rather than abruptly closing the book.
   - **Floating Hint Toast**: Brief 2.4-second overlay badge on activation explaining how to access controls.
+- **Resource Management**: Properly closes `PdfDocument` and disposes `PdfController` to prevent native memory leaks.
 
 ### Micro-Animations & Custom Components
 

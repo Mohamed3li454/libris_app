@@ -29,18 +29,18 @@ class _PdfReaderViewState extends State<PdfReaderView>
   final ValueNotifier<int> _pageCount = ValueNotifier<int>(0);
   final ValueNotifier<bool> _chromeVisible = ValueNotifier<bool>(true);
 
-  PdfControllerPinch? _controller;
+  PdfController? _controller;
+  PdfDocument? _document;
   Timer? _saveDebounce;
   Timer? _hintTimer;
+  DateTime _lastChromeToggle = DateTime.fromMillisecondsSinceEpoch(0);
+
   bool _preparing = true;
   bool _isFullRead = false;
   bool _showFullReadHint = false;
+  Axis _scrollDirection = Axis.horizontal;
   String? _error;
   int _savedPage = 1;
-  Offset? _gestureStart;
-  DateTime? _gestureStartedAt;
-  var _didPan = false;
-  var _didRestore = false;
 
   String get _progressKey {
     final name = widget.args.filePath.split(RegExp(r'[/\\]')).last;
@@ -68,7 +68,8 @@ class _PdfReaderViewState extends State<PdfReaderView>
       _savedPage = await PdfProgressService.getLastPage(_progressKey);
       if (_savedPage < 1) _savedPage = 1;
       if (!mounted) return;
-      _controller = PdfControllerPinch(
+
+      _controller = PdfController(
         document: PdfDocument.openFile(path),
         initialPage: _savedPage,
       );
@@ -103,6 +104,7 @@ class _PdfReaderViewState extends State<PdfReaderView>
     final page = _page.value;
     unawaited(PdfProgressService.saveLastPage(_progressKey, page));
     _controller?.dispose();
+    _document?.close();
     _page.dispose();
     _pageCount.dispose();
     _chromeVisible.dispose();
@@ -111,6 +113,15 @@ class _PdfReaderViewState extends State<PdfReaderView>
 
   Future<void> _flushSave() {
     return PdfProgressService.saveLastPage(_progressKey, _page.value);
+  }
+
+  void _toggleChrome() {
+    final now = DateTime.now();
+    if (now.difference(_lastChromeToggle).inMilliseconds < 220) {
+      return;
+    }
+    _lastChromeToggle = now;
+    _chromeVisible.value = !_chromeVisible.value;
   }
 
   void _toggleFullRead() {
@@ -137,17 +148,6 @@ class _PdfReaderViewState extends State<PdfReaderView>
       );
       _chromeVisible.value = true;
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _controller == null) return;
-      unawaited(
-        _controller!.animateToPage(
-          pageNumber: _page.value,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        ),
-      );
-    });
   }
 
   void _onPageChanged(int page) {
@@ -157,39 +157,9 @@ class _PdfReaderViewState extends State<PdfReaderView>
     }
     _page.value = page;
     _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 250), () {
+    _saveDebounce = Timer(const Duration(milliseconds: 300), () {
       unawaited(PdfProgressService.saveLastPage(_progressKey, page));
     });
-  }
-
-  void _onInteractionStart(ScaleStartDetails details) {
-    _gestureStart = details.focalPoint;
-    _gestureStartedAt = DateTime.now();
-    _didPan = false;
-  }
-
-  void _onInteractionUpdate(ScaleUpdateDetails details) {
-    final start = _gestureStart;
-    if (start == null) {
-      _chromeVisible.value = false;
-      return;
-    }
-    if ((details.focalPoint - start).distance > 6) {
-      _didPan = true;
-      _chromeVisible.value = false;
-    }
-  }
-
-  void _onInteractionEnd(ScaleEndDetails details) {
-    final start = _gestureStart;
-    final startedAt = _gestureStartedAt;
-    _gestureStart = null;
-    _gestureStartedAt = null;
-    if (start == null || startedAt == null) return;
-    final elapsed = DateTime.now().difference(startedAt);
-    if (!_didPan && elapsed < const Duration(milliseconds: 320)) {
-      _chromeVisible.value = !_chromeVisible.value;
-    }
   }
 
   Future<void> _goToPage() async {
@@ -232,11 +202,51 @@ class _PdfReaderViewState extends State<PdfReaderView>
     if (result == null || _controller == null) return;
     final target = result.clamp(1, total);
     await _controller!.animateToPage(
-      pageNumber: target,
+      target,
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
     _chromeVisible.value = true;
+  }
+
+  Future<PdfPageImage?> _renderPage(PdfPage page) {
+    double scale = 2.5;
+    if (mounted) {
+      final mediaQuery = MediaQuery.of(context);
+      final targetWidth = mediaQuery.size.width * mediaQuery.devicePixelRatio;
+      if (page.width > 0) {
+        scale = (targetWidth / page.width).clamp(2.0, 3.2);
+      }
+    }
+    return page.render(
+      width: page.width * scale,
+      height: page.height * scale,
+      format: PdfPageImageFormat.jpeg,
+      backgroundColor: '#ffffff',
+      quality: 92,
+    );
+  }
+
+  PhotoViewGalleryPageOptions _buildPageOptions(
+    BuildContext context,
+    Future<PdfPageImage> pageImage,
+    int index,
+    PdfDocument document,
+  ) {
+    return PhotoViewGalleryPageOptions(
+      imageProvider: PdfPageImageProvider(
+        pageImage,
+        index,
+        document.id,
+      ),
+      minScale: PhotoViewComputedScale.contained * 1.0,
+      maxScale: PhotoViewComputedScale.contained * 3.5,
+      initialScale: PhotoViewComputedScale.contained * 1.0,
+      heroAttributes: PhotoViewHeroAttributes(tag: '${document.id}-$index'),
+      filterQuality: FilterQuality.high,
+      basePosition: Alignment.center,
+      onTapUp: (context, details, controllerValue) => _toggleChrome(),
+    );
   }
 
   @override
@@ -258,7 +268,28 @@ class _PdfReaderViewState extends State<PdfReaderView>
       child: Scaffold(
         backgroundColor: canvas,
         body: _preparing
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'Opening ${widget.args.title}...',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: context.mutedColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : _error != null
             ? Center(
                 child: Padding(
@@ -281,56 +312,52 @@ class _PdfReaderViewState extends State<PdfReaderView>
                             : MediaQuery.paddingOf(context).top,
                       ),
                       Expanded(
-                        child: PdfViewPinch(
-                          controller: _controller!,
-                          padding: _isFullRead ? 0 : 12,
-                          minScale: 1,
-                          maxScale: 6,
-                          backgroundDecoration: BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: _isFullRead
-                                ? const []
-                                : const [
-                                    BoxShadow(
-                                      color: Color(0x33000000),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                          ),
-                          builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
-                            options: const DefaultBuilderOptions(),
-                            documentLoaderBuilder: (_) => const Center(
-                              child: CircularProgressIndicator(),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: _toggleChrome,
+                          child: PdfView(
+                            controller: _controller!,
+                            scrollDirection: _scrollDirection,
+                            pageSnapping: true,
+                            physics: const BouncingScrollPhysics(),
+                            backgroundDecoration: BoxDecoration(
+                              color: canvas,
                             ),
-                            pageLoaderBuilder: (_) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            errorBuilder: (_, error) => Center(
-                              child: Text(
-                                'Could not open this PDF.',
-                                style: TextStyle(color: context.mutedColor),
+                            renderer: _renderPage,
+                            builders: PdfViewBuilders<DefaultBuilderOptions>(
+                              options: const DefaultBuilderOptions(),
+                              pageBuilder: _buildPageOptions,
+                              documentLoaderBuilder: (_) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              pageLoaderBuilder: (_) => const Center(
+                                child: SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                  ),
+                                ),
+                              ),
+                              errorBuilder: (_, error) => Center(
+                                child: Text(
+                                  'Could not open this PDF.',
+                                  style: TextStyle(color: context.mutedColor),
+                                ),
                               ),
                             ),
+                            onDocumentLoaded: (document) {
+                              _document = document;
+                              _pageCount.value = document.pagesCount;
+                            },
+                            onDocumentError: (_) {
+                              if (!mounted) return;
+                              setState(
+                                () => _error = 'Could not open this PDF.',
+                              );
+                            },
+                            onPageChanged: _onPageChanged,
                           ),
-                          onDocumentLoaded: (document) {
-                            _pageCount.value = document.pagesCount;
-                            if (_didRestore) return;
-                            _didRestore = true;
-                            final target = _savedPage.clamp(
-                              1,
-                              document.pagesCount,
-                            );
-                            _page.value = target;
-                          },
-                          onDocumentError: (_) {
-                            if (!mounted) return;
-                            setState(() => _error = 'Could not open this PDF.');
-                          },
-                          onPageChanged: _onPageChanged,
-                          onInteractionStart: _onInteractionStart,
-                          onInteractionUpdate: _onInteractionUpdate,
-                          onInteractionEnd: _onInteractionEnd,
                         ),
                       ),
                     ],
@@ -379,6 +406,27 @@ class _PdfReaderViewState extends State<PdfReaderView>
                                               fontWeight: FontWeight.w700,
                                               color: context.titleColor,
                                             ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: _scrollDirection ==
+                                                  Axis.horizontal
+                                              ? 'Switch to vertical scroll'
+                                              : 'Switch to horizontal pages',
+                                          onPressed: () {
+                                            setState(() {
+                                              _scrollDirection =
+                                                  _scrollDirection ==
+                                                          Axis.horizontal
+                                                      ? Axis.vertical
+                                                      : Axis.horizontal;
+                                            });
+                                          },
+                                          icon: Icon(
+                                            _scrollDirection == Axis.horizontal
+                                                ? Icons.swap_vert_rounded
+                                                : Icons.swap_horiz_rounded,
+                                            color: context.titleColor,
                                           ),
                                         ),
                                         ValueListenableBuilder<int>(
