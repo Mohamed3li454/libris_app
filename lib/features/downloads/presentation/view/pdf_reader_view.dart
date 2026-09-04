@@ -165,48 +165,32 @@ class _PdfReaderViewState extends State<PdfReaderView>
   Future<void> _goToPage() async {
     final total = _pageCount.value;
     if (total < 1) return;
-    final field = TextEditingController(text: '${_page.value}');
+
     final result = await showDialog<int>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Go to page'),
-          content: TextField(
-            controller: field,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              hintText: '1 – $total',
-              border: const OutlineInputBorder(),
-            ),
-            onSubmitted: (value) {
-              Navigator.pop(dialogContext, int.tryParse(value));
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, int.tryParse(field.text)),
-              child: const Text('Go'),
-            ),
-          ],
-        );
-      },
+      builder: (dialogContext) => _GoToPageDialog(
+        currentPage: _page.value,
+        totalPages: total,
+      ),
     );
-    field.dispose();
-    if (result == null || _controller == null) return;
+
+    if (result == null || _controller == null || !mounted) return;
     final target = result.clamp(1, total);
-    await _controller!.animateToPage(
-      target,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
-    _chromeVisible.value = true;
+    if (target == _page.value) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _controller == null) return;
+      if ((target - _page.value).abs() == 1) {
+        _controller!.animateToPage(
+          target,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+      } else {
+        _controller!.jumpToPage(target);
+      }
+      _chromeVisible.value = true;
+    });
   }
 
   Future<PdfPageImage?> _renderPage(PdfPage page) {
@@ -242,7 +226,6 @@ class _PdfReaderViewState extends State<PdfReaderView>
       minScale: PhotoViewComputedScale.contained * 1.0,
       maxScale: PhotoViewComputedScale.contained * 3.5,
       initialScale: PhotoViewComputedScale.contained * 1.0,
-      heroAttributes: PhotoViewHeroAttributes(tag: '${document.id}-$index'),
       filterQuality: FilterQuality.high,
       basePosition: Alignment.center,
       onTapUp: (context, details, controllerValue) => _toggleChrome(),
@@ -532,6 +515,68 @@ class _PdfReaderViewState extends State<PdfReaderView>
                 ],
               ),
       ),
+    );
+  }
+}
+
+class _GoToPageDialog extends StatefulWidget {
+  final int currentPage;
+  final int totalPages;
+
+  const _GoToPageDialog({
+    required this.currentPage,
+    required this.totalPages,
+  });
+
+  @override
+  State<_GoToPageDialog> createState() => _GoToPageDialogState();
+}
+
+class _GoToPageDialogState extends State<_GoToPageDialog> {
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: '${widget.currentPage}');
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final parsed = int.tryParse(_textController.text.trim());
+    Navigator.of(context).pop(parsed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Go to page'),
+      content: TextField(
+        controller: _textController,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          hintText: '1 – ${widget.totalPages}',
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Go'),
+        ),
+      ],
     );
   }
 }
